@@ -10,7 +10,7 @@
     "format": "prettier . --write"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.10.4",
