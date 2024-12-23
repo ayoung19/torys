@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  accountId String @id
+
+  isActive Boolean
+  phoneNumber String
+  role String
+}
+
+// model Timesheet {
+//   timesheetId String @id
+
+//   employees Employee[]
+//   jobs Job[]
+// }
+
+// model Employee {
+//   timesheetId String
+//   timesheet Timesheet @relation(fields: [timesheetId], references: [timesheetId])
+//   employeeId String @default(uuid())
+//   @@id(fields: [timesheetId, employeeId], name: "employeePrimaryKey")
+
+//   entries Entry[]
+
+//   isActive Boolean
+//   displayId String
+//   name String
+//   phoneNumber String
+//   rateResidentialCents Float
+//   rateCommercialCents Float
+//   rateDavisBaconCents Float
+//   rateDavisBaconOvertimeCents Float
+//   rateDriveTimeCents Float
+// }
+
+// model Job {
+//   timesheetId String
+//   timesheet Timesheet @relation(fields: [timesheetId], references: [timesheetId])
+//   jobId String @default(uuid())
+//   @@id(fields: [timesheetId, jobId], name: "jobPrimaryKey")
+
+//   days Day[]
+
+//   isActive Boolean
+//   name String
+//   budgetOriginal Float?
+//   budgetCurrent Float?
+//   rateType String
+//   overtimeType String
+// }
+
+// model Day {
+//   timesheetId String
+//   jobId String
+//   job Job @relation(fields: [timesheetId, jobId], references: [timesheetId, jobId])
+//   dayId Int
+//   @@id(fields: [timesheetId, jobId, dayId], name: "dayPrimaryKey")
+
+//   entries Entry[]
+
+//   // editor String
+//   description String
+// }
+
+// model Entry {
+//   timesheetId String
+//   jobId String
+//   dayId Int
+//   day Day @relation(fields: [timesheetId, jobId, dayId], references: [timesheetId, jobId, dayId])
+//   entryId String @default(uuid())
+//   @@id(fields: [timesheetId, jobId, dayId, entryId], name: "entryPrimaryKey")
+
+//   employee Employee @relation(fields: [timesheetId, employeeId], references: [timesheetId, employeeId])
+//   employeeId String
+
+//   isValid Boolean
+//   isConfirmed Boolean
+
+//   timeInSeconds Int
+//   timeOutSeconds Int
+//   lunchSeconds Int
+//   entryType String
+// }
