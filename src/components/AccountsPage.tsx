@@ -5,7 +5,7 @@ import { StringifyValues } from "@/utils/types";
 import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
 import { Account } from "@prisma/client";
-import { DataTable, FormLayout, useModals } from "@saas-ui/react";
+import { DataTable, FormLayout, FormRenderContext, useModals } from "@saas-ui/react";
 import { createColumnHelper, getPaginationRowModel } from "@tanstack/react-table";
 import { Pagination } from "./Pagination";
 
@@ -33,6 +33,54 @@ export const AccountsPage = ({
   const pagination = usePagination({
     total,
   });
+
+  const formChildren = ({ Field, formState }: FormRenderContext<StringifyValues<Account>>) => (
+    <FormLayout>
+      <Field
+        name="isActive"
+        label="Active"
+        type="select"
+        options={[
+          { label: "Yes", value: "true" },
+          { label: "No", value: "false" },
+        ]}
+      />
+      <Field
+        name="accountId"
+        renderValue={(value) =>
+          typeof value === "string" && !!formState.defaultValues?.accountId
+            ? accountIdToUsername[value]
+            : undefined
+        }
+        label="Username"
+        type="select"
+        options={Object.entries(accountIdToUsername)
+          .map(([accountId, username]) => ({
+            label: username,
+            value: accountId,
+          }))
+          .filter((option) => !accountIds.includes(option.value))}
+        isReadOnly={!!formState.defaultValues?.accountId}
+        isDisabled={!!formState.defaultValues?.accountId}
+        isRequired={true}
+        rules={{ required: true }}
+      />
+      <Field name="phoneNumber" label="Phone Number" type="text" />
+      <Field
+        name="role"
+        label="Role"
+        type="select"
+        options={[
+          { label: "Developer", value: "dev" },
+          { label: "Admin", value: "admin" },
+          { label: "Coordinator", value: "coordinator" },
+          { label: "Foreman", value: "foreman" },
+        ]}
+        isRequired={true}
+        rules={{ required: true }}
+      />
+    </FormLayout>
+  );
 
   const columns = [
     columnHelper.accessor("isActive", {
@@ -74,47 +122,7 @@ export const AccountsPage = ({
                   upsertAccountAction(data);
                   modals.closeAll();
                 },
-                children: ({ Field, watch }) => (
-                  <FormLayout>
-                    <Field
-                      name="isActive"
-                      label="Active"
-                      type="select"
-                      options={[
-                        { label: "Yes", value: "true" },
-                        { label: "No", value: "false" },
-                      ]}
-                    />
-                    <Field
-                      name="accountId"
-                      renderValue={() => accountIdToUsername[watch("accountId")]}
-                      label="Username"
-                      type="select"
-                      options={Object.entries(accountIdToUsername)
-                        .map(([accountId, username]) => ({
-                          label: username,
-                          value: accountId,
-                        }))
-                        .filter((option) => !accountIds.includes(option.value))}
-                      isReadOnly={true}
-                      isDisabled={true}
-                    />
-                    <Field name="phoneNumber" label="Phone Number" type="text" />
-                    <Field
-                      name="role"
-                      label="Role"
-                      type="select"
-                      options={[
-                        { label: "Developer", value: "dev" },
-                        { label: "Admin", value: "admin" },
-                        { label: "Coordinator", value: "coordinator" },
-                        { label: "Foreman", value: "foreman" },
-                      ]}
-                      isRequired={true}
-                      rules={{ required: true }}
-                    />
-                  </FormLayout>
-                ),
+                children: formChildren,
               })
             }
             isDisabled={!canActorModifyAccount(actor, props.row.original)}
@@ -143,46 +151,7 @@ export const AccountsPage = ({
               onSubmit: (data) => {
                 upsertAccountAction(data), modals.closeAll();
               },
-              children: ({ Field }) => (
-                <FormLayout>
-                  <Field
-                    name="isActive"
-                    label="Active"
-                    type="select"
-                    options={[
-                      { label: "Yes", value: "true" },
-                      { label: "No", value: "false" },
-                    ]}
-                  />
-                  <Field
-                    name="accountId"
-                    label="Username"
-                    type="select"
-                    options={Object.entries(accountIdToUsername)
-                      .map(([accountId, username]) => ({
-                        label: username,
-                        value: accountId,
-                      }))
-                      .filter((option) => !accountIds.includes(option.value))}
-                    isRequired={true}
-                    rules={{ required: true }}
-                  />
-                  <Field name="phoneNumber" label="Phone Number" type="text" />
-                  <Field
-                    name="role"
-                    label="Role"
-                    type="select"
-                    options={[
-                      { label: "Developer", value: "dev" },
-                      { label: "Admin", value: "admin" },
-                      { label: "Coordinator", value: "coordinator" },
-                      { label: "Foreman", value: "foreman" },
-                    ]}
-                    isRequired={true}
-                    rules={{ required: true }}
-                  />
-                </FormLayout>
-              ),
+              children: formChildren,
             })
           }
         >
