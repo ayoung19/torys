@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { AccountType, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -10,7 +10,7 @@ async function main() {
       accountId: "user_2lhyc7EmEuvzN8xWoE0TVWIcB1t",
       isActive: true,
       phoneNumber: "",
-      role: "dev",
+      accountType: AccountType.DEV,
     },
   });
 

@@ -1,10 +1,10 @@
 import { SmartNavbar } from "@/components/SmartNavbar";
-// import prisma from "@/db";
+import prisma from "@/db";
 import { Container } from "@chakra-ui/react";
 import { ClerkProvider } from "@clerk/nextjs";
-// import { TZDate } from "@date-fns/tz";
+import { TZDate } from "@date-fns/tz";
 import { AppShell, ModalsProvider, SaasProvider } from "@saas-ui/react";
-// import { endOfWeek, format } from "date-fns";
+import { endOfWeek, format } from "date-fns";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -18,77 +18,77 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // const endOfThisWeek = format(endOfWeek(TZDate.tz("Pacific/Honolulu")), "yyyy-MM-dd");
+  const endOfThisWeek = format(endOfWeek(TZDate.tz("Pacific/Honolulu")), "yyyy-MM-dd");
 
-  // const timesheet = await prisma.timesheet.findUnique({
-  //   where: {
-  //     timesheetId: endOfThisWeek,
-  //   },
-  // });
+  const timesheet = await prisma.timesheet.findUnique({
+    where: {
+      timesheetId: endOfThisWeek,
+    },
+  });
 
-  // if (timesheet === null) {
-  //   const previousTimesheet = await prisma.timesheet.findFirst({
-  //     orderBy: {
-  //       timesheetId: "desc",
-  //     },
-  //     include: {
-  //       employees: true,
-  //       jobs: true,
-  //     },
-  //   });
+  if (timesheet === null) {
+    const previousTimesheet = await prisma.timesheet.findFirst({
+      orderBy: {
+        timesheetId: "desc",
+      },
+      include: {
+        employees: true,
+        jobs: true,
+      },
+    });
 
-  //   if (previousTimesheet === null) {
-  //     await prisma.timesheet.create({
-  //       data: {
-  //         timesheetId: endOfThisWeek,
-  //       },
-  //     });
-  //   } else {
-  //     const newTimesheet = await prisma.timesheet.create({
-  //       data: {
-  //         timesheetId: endOfThisWeek,
-  //       },
-  //     });
+    if (previousTimesheet === null) {
+      await prisma.timesheet.create({
+        data: {
+          timesheetId: endOfThisWeek,
+        },
+      });
+    } else {
+      const newTimesheet = await prisma.timesheet.create({
+        data: {
+          timesheetId: endOfThisWeek,
+        },
+      });
 
-  //     // Copy employees over from previous timesheet.
-  //     await Promise.all(
-  //       previousTimesheet.employees
-  //         .map((employee) => ({
-  //           ...employee,
-  //           timesheetId: newTimesheet.timesheetId,
-  //         }))
-  //         .map((employee) => prisma.employee.create({ data: employee })),
-  //     );
+      // Copy employees over from previous timesheet.
+      await Promise.all(
+        previousTimesheet.employees
+          .map((employee) => ({
+            ...employee,
+            timesheetId: newTimesheet.timesheetId,
+          }))
+          .map((employee) => prisma.employee.create({ data: employee })),
+      );
 
-  //     // Copy jobs over from previous timesheet.
-  //     await Promise.all(
-  //       previousTimesheet.jobs
-  //         .map((job) => ({
-  //           ...job,
-  //           timesheetId: newTimesheet.timesheetId,
-  //         }))
-  //         .map((job) => prisma.job.create({ data: job })),
-  //     );
+      // Copy jobs over from previous timesheet.
+      await Promise.all(
+        previousTimesheet.jobs
+          .map((job) => ({
+            ...job,
+            timesheetId: newTimesheet.timesheetId,
+          }))
+          .map((job) => prisma.job.create({ data: job })),
+      );
 
-  //     // Add days to new jobs.
-  //     const jobs = await prisma.job.findMany({
-  //       where: {
-  //         timesheetId: newTimesheet.timesheetId,
-  //       },
-  //     });
+      // Add days to new jobs.
+      const jobs = await prisma.job.findMany({
+        where: {
+          timesheetId: newTimesheet.timesheetId,
+        },
+      });
 
-  //     await prisma.day.createMany({
-  //       data: jobs.flatMap((job) =>
-  //         Array.from(Array(7).keys()).map((dayId) => ({
-  //           timesheetId: newTimesheet.timesheetId,
-  //           jobId: job.jobId,
-  //           dayId,
-  //           description: "",
-  //         })),
-  //       ),
-  //     });
-  //   }
-  // }
+      await prisma.day.createMany({
+        data: jobs.flatMap((job) =>
+          Array.from(Array(7).keys()).map((dayId) => ({
+            timesheetId: newTimesheet.timesheetId,
+            jobId: job.jobId,
+            dayId,
+            description: "",
+          })),
+        ),
+      });
+    }
+  }
 
   return (
     <ClerkProvider>

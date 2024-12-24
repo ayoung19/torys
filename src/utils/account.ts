@@ -1,4 +1,6 @@
-import { Account } from "@prisma/client";
+import { Account, AccountType } from "@prisma/client";
+
+export const ACCOUNT_TYPES_DEV_ADMIN: AccountType[] = [AccountType.DEV, AccountType.ADMIN];
 
 export const canActorModifyAccount = (actor: Account, account: Account) => {
   // Actor cannot modify their own account.
@@ -12,12 +14,15 @@ export const canActorModifyAccount = (actor: Account, account: Account) => {
   }
 
   // Actor's role must be dev or admin.
-  if (!["dev", "admin"].includes(actor.role)) {
+  if (!ACCOUNT_TYPES_DEV_ADMIN.includes(actor.accountType)) {
     return false;
   }
 
   // If actor is admin, they can't modify dev or admin accounts.
-  if (actor.role === "admin" && ["dev", "admin"].includes(account.role)) {
+  if (
+    actor.accountType === AccountType.ADMIN &&
+    ACCOUNT_TYPES_DEV_ADMIN.includes(account.accountType)
+  ) {
     return false;
   }
 

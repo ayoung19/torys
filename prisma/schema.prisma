@@ -13,82 +13,111 @@ datasource db {
 model Account {
   accountId String @id
 
+  daysEdited Day[]
+
   isActive Boolean
   phoneNumber String
-  role String
+  accountType AccountType
 }
 
-// model Timesheet {
-//   timesheetId String @id
+enum AccountType {
+  DEV
+  ADMIN
+  COORDINATOR
+  FOREMAN
+}
 
-//   employees Employee[]
-//   jobs Job[]
-// }
+model Timesheet {
+  timesheetId String @id
 
-// model Employee {
-//   timesheetId String
-//   timesheet Timesheet @relation(fields: [timesheetId], references: [timesheetId])
-//   employeeId String @default(uuid())
-//   @@id(fields: [timesheetId, employeeId], name: "employeePrimaryKey")
+  employees Employee[]
+  jobs Job[]
+}
 
-//   entries Entry[]
+model Employee {
+  timesheetId String
+  timesheet Timesheet @relation(fields: [timesheetId], references: [timesheetId])
+  employeeId String @default(uuid())
+  @@id(fields: [timesheetId, employeeId], name: "employeePrimaryKey")
 
-//   isActive Boolean
-//   displayId String
-//   name String
-//   phoneNumber String
-//   rateResidentialCents Float
-//   rateCommercialCents Float
-//   rateDavisBaconCents Float
-//   rateDavisBaconOvertimeCents Float
-//   rateDriveTimeCents Float
-// }
+  entries Entry[]
 
-// model Job {
-//   timesheetId String
-//   timesheet Timesheet @relation(fields: [timesheetId], references: [timesheetId])
-//   jobId String @default(uuid())
-//   @@id(fields: [timesheetId, jobId], name: "jobPrimaryKey")
+  isActive Boolean
+  displayId String
+  name String
+  phoneNumber String
+  rateResidentialCentsPerHour Int
+  rateCommercialCentsPerHour Int
+  rateDavisBaconCentsPerHour Int
+  rateDavisBaconOvertimeCentsPerHour Int
+  rateDriveTimeCentsPerHour Int
+}
 
-//   days Day[]
+model Job {
+  timesheetId String
+  timesheet Timesheet @relation(fields: [timesheetId], references: [timesheetId])
+  jobId String @default(uuid())
+  @@id(fields: [timesheetId, jobId], name: "jobPrimaryKey")
 
-//   isActive Boolean
-//   name String
-//   budgetOriginal Float?
-//   budgetCurrent Float?
-//   rateType String
-//   overtimeType String
-// }
+  days Day[]
 
-// model Day {
-//   timesheetId String
-//   jobId String
-//   job Job @relation(fields: [timesheetId, jobId], references: [timesheetId, jobId])
-//   dayId Int
-//   @@id(fields: [timesheetId, jobId, dayId], name: "dayPrimaryKey")
+  isActive Boolean
+  name String
+  budgetOriginalCents Int?
+  budgetCurrentCents Int?
+  rateType RateType
+  overtimeType OvertimeType
+}
 
-//   entries Entry[]
 
-//   // editor String
-//   description String
-// }
+enum RateType {
+  RESIDENTIAL
+  COMMERCIAL
+  DAVIS_BACON
+  DRIVE_TIME
+}
 
-// model Entry {
-//   timesheetId String
-//   jobId String
-//   dayId Int
-//   day Day @relation(fields: [timesheetId, jobId, dayId], references: [timesheetId, jobId, dayId])
-//   entryId String @default(uuid())
-//   @@id(fields: [timesheetId, jobId, dayId, entryId], name: "entryPrimaryKey")
+enum OvertimeType {
+  DAILY
+  WEEKLY
+}
 
-//   employee Employee @relation(fields: [timesheetId, employeeId], references: [timesheetId, employeeId])
-//   employeeId String
+model Day {
+  timesheetId String
+  jobId String
+  job Job @relation(fields: [timesheetId, jobId], references: [timesheetId, jobId])
+  dayId Int
+  @@id(fields: [timesheetId, jobId, dayId], name: "dayPrimaryKey")
 
-//   isValid Boolean
-//   isConfirmed Boolean
+  editor Account? @relation(fields: [editorId], references: [accountId])
+  editorId String?
 
-//   timeInSeconds Int
-//   timeOutSeconds Int
-//   lunchSeconds Int
-//   entryType String
-// }
+  entries Entry[]
+
+  description String
+}
+
+model Entry {
+  timesheetId String
+  jobId String
+  dayId Int
+  day Day @relation(fields: [timesheetId, jobId, dayId], references: [timesheetId, jobId, dayId])
+  entryId String @default(uuid())
+  @@id(fields: [timesheetId, jobId, dayId, entryId], name: "entryPrimaryKey")
+
+  employee Employee @relation(fields: [timesheetId, employeeId], references: [timesheetId, employeeId])
+  employeeId String
+
+  isValid Boolean
+  isConfirmed Boolean
+
+  timeInSeconds Int
+  timeOutSeconds Int
+  lunchSeconds Int
+  entryType EntryType
+}
+
+enum EntryType {
+  ROOFING
+  CARPENTRY
+}

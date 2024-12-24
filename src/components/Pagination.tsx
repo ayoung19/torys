@@ -12,7 +12,7 @@ export const Pagination = ({ pagination }: Props) => {
       <IconButton
         aria-label="Paginate previous"
         icon={<FiChevronLeft />}
-        isDisabled={pagination.active === 1}
+        isDisabled={pagination.range.length === 0 || pagination.active === 1}
         onClick={() => pagination.previous()}
       />
       {pagination.range.map((n, i) =>
@@ -33,7 +33,7 @@ export const Pagination = ({ pagination }: Props) => {
       <IconButton
         aria-label="Paginate next"
         icon={<FiChevronRight />}
-        isDisabled={pagination.active === pagination.range.length}
+        isDisabled={pagination.range.length === 0 || pagination.active === pagination.range.length}
         onClick={() => pagination.next()}
       />
     </Stack>

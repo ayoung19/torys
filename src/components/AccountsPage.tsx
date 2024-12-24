@@ -4,7 +4,7 @@ import { canActorModifyAccount } from "@/utils/account";
 import { StringifyValues } from "@/utils/types";
 import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
-import { Account } from "@prisma/client";
+import { Account, AccountType } from "@prisma/client";
 import { DataTable, FormLayout, FormRenderContext, useModals } from "@saas-ui/react";
 import { createColumnHelper, getPaginationRowModel } from "@tanstack/react-table";
 import { Pagination } from "./Pagination";
@@ -67,14 +67,14 @@ export const AccountsPage = ({
       />
       <Field name="phoneNumber" label="Phone Number" type="text" />
       <Field
-        name="role"
+        name="accountType"
         label="Role"
         type="select"
         options={[
-          { label: "Developer", value: "dev" },
-          { label: "Admin", value: "admin" },
-          { label: "Coordinator", value: "coordinator" },
-          { label: "Foreman", value: "foreman" },
+          { label: "Developer", value: AccountType.DEV },
+          { label: "Admin", value: AccountType.ADMIN },
+          { label: "Coordinator", value: AccountType.COORDINATOR },
+          { label: "Foreman", value: AccountType.FOREMAN },
         ]}
         isRequired={true}
         rules={{ required: true }}
@@ -98,7 +98,7 @@ export const AccountsPage = ({
     columnHelper.accessor("phoneNumber", {
       header: "Phone Number",
     }),
-    columnHelper.accessor("role", {
+    columnHelper.accessor("accountType", {
       header: "Role",
       cell: (props) => props.getValue(),
     }),
@@ -116,7 +116,7 @@ export const AccountsPage = ({
                   accountId: props.row.original.accountId,
                   isActive: props.row.original.isActive.toString(),
                   phoneNumber: props.row.original.phoneNumber,
-                  role: props.row.original.role,
+                  accountType: props.row.original.accountType.toString(),
                 },
                 onSubmit: (data) => {
                   upsertAccountAction(data);
@@ -146,10 +146,11 @@ export const AccountsPage = ({
                 accountId: "",
                 isActive: "true",
                 phoneNumber: "",
-                role: "",
+                accountType: "",
               },
               onSubmit: (data) => {
-                upsertAccountAction(data), modals.closeAll();
+                upsertAccountAction(data);
+                modals.closeAll();
               },
               children: formChildren,
             })

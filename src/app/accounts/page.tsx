@@ -1,9 +1,9 @@
 import { AccountsPage } from "@/components/AccountsPage";
 import prisma from "@/db";
-import { canActorModifyAccount } from "@/utils/account";
+import { ACCOUNT_TYPES_DEV_ADMIN, canActorModifyAccount } from "@/utils/account";
 import { StringifyValues } from "@/utils/types";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { Account } from "@prisma/client";
+import { Account, AccountType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -11,7 +11,12 @@ const accountSchema = z.object({
   accountId: z.string(),
   isActive: z.enum(["true", "false"]).transform((value) => value === "true"),
   phoneNumber: z.string(),
-  role: z.enum(["dev", "admin", "coordinator", "foreman"]),
+  accountType: z.enum([
+    AccountType.DEV,
+    AccountType.ADMIN,
+    AccountType.COORDINATOR,
+    AccountType.FOREMAN,
+  ]),
 });
 
 export default async function Page() {
@@ -30,7 +35,10 @@ export default async function Page() {
     });
 
     // If actor is admin, they can't make dev or admin accounts.
-    if (actor.role === "admin" && ["dev", "admin"].includes(rest.role)) {
+    if (
+      actor.accountType === AccountType.ADMIN &&
+      ACCOUNT_TYPES_DEV_ADMIN.includes(rest.accountType)
+    ) {
       throw new Error("forbidden");
     }
 
