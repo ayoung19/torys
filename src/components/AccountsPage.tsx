@@ -47,9 +47,9 @@ export const AccountsPage = ({
       />
       <Field
         name="accountId"
-        renderValue={(value) =>
-          typeof value === "string" && !!formState.defaultValues?.accountId
-            ? accountIdToUsername[value]
+        renderValue={
+          formState.defaultValues?.accountId
+            ? () => accountIdToUsername[formState.defaultValues?.accountId || ""]
             : undefined
         }
         label="Username"
