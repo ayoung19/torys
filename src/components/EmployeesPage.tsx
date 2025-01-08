@@ -1,6 +1,6 @@
 "use client";
 
-import { centsToDollarString, dollarStringToCents } from "@/utils/currency";
+import { centsToDollarString, dollarStringToCentsString } from "@/utils/currency";
 import { currentTimesheetId } from "@/utils/date";
 import { StringifyValues } from "@/utils/types";
 import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
@@ -62,7 +62,7 @@ const formChildren = ({ Field }: FormRenderContext<StringifyValues<Employee>>) =
 
 interface Props {
   employees: Employee[];
-  upsertAction: (employee: StringifyValues<Employee>) => void;
+  upsertAction: (employee: StringifyValues<Employee>) => Promise<void>;
 }
 
 export const EmployeesPage = ({ employees, upsertAction }: Props) => {
@@ -74,16 +74,16 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
     total,
   });
 
-  const formOnSubmit = (data: StringifyValues<Employee>) => {
-    upsertAction({
+  const formOnSubmit = async (data: StringifyValues<Employee>) => {
+    await upsertAction({
       ...data,
-      rateResidentialCentsPerHour: dollarStringToCents(data.rateResidentialCentsPerHour),
-      rateCommercialCentsPerHour: dollarStringToCents(data.rateCommercialCentsPerHour),
-      rateDavisBaconCentsPerHour: dollarStringToCents(data.rateDavisBaconCentsPerHour),
-      rateDavisBaconOvertimeCentsPerHour: dollarStringToCents(
+      rateResidentialCentsPerHour: dollarStringToCentsString(data.rateResidentialCentsPerHour),
+      rateCommercialCentsPerHour: dollarStringToCentsString(data.rateCommercialCentsPerHour),
+      rateDavisBaconCentsPerHour: dollarStringToCentsString(data.rateDavisBaconCentsPerHour),
+      rateDavisBaconOvertimeCentsPerHour: dollarStringToCentsString(
         data.rateDavisBaconOvertimeCentsPerHour,
       ),
-      rateDriveTimeCentsPerHour: dollarStringToCents(data.rateDriveTimeCentsPerHour),
+      rateDriveTimeCentsPerHour: dollarStringToCentsString(data.rateDriveTimeCentsPerHour),
     });
 
     modals.closeAll();

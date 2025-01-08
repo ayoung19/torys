@@ -15,7 +15,7 @@ interface Props {
   actor: Account;
   accounts: Account[];
   accountIdToUsername: Record<string, string>;
-  upsertAccountAction: (account: StringifyValues<Account>) => void;
+  upsertAccountAction: (account: StringifyValues<Account>) => Promise<void>;
 }
 
 export const AccountsPage = ({
@@ -118,8 +118,9 @@ export const AccountsPage = ({
                   phoneNumber: props.row.original.phoneNumber,
                   accountType: props.row.original.accountType.toString(),
                 },
-                onSubmit: (data) => {
-                  upsertAccountAction(data);
+                onSubmit: async (data) => {
+                  await upsertAccountAction(data);
+
                   modals.closeAll();
                 },
                 children: formChildren,

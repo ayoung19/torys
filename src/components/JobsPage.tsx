@@ -1,6 +1,6 @@
 "use client";
 
-import { centsToDollarString, dollarStringToCents } from "@/utils/currency";
+import { centsToDollarString, dollarStringToCentsString } from "@/utils/currency";
 import { currentTimesheetId } from "@/utils/date";
 import { StringifyValues } from "@/utils/types";
 import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
@@ -53,7 +53,7 @@ const formChildren = ({ Field }: FormRenderContext<StringifyValues<Job>>) => (
 
 interface Props {
   jobs: Job[];
-  upsertAction: (job: StringifyValues<Job>) => void;
+  upsertAction: (job: StringifyValues<Job>) => Promise<void>;
 }
 
 export const JobsPage = ({ jobs, upsertAction }: Props) => {
@@ -65,11 +65,11 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
     total,
   });
 
-  const formOnSubmit = (data: StringifyValues<Job>) => {
-    upsertAction({
+  const formOnSubmit = async (data: StringifyValues<Job>) => {
+    await upsertAction({
       ...data,
-      budgetOriginalCents: dollarStringToCents(data.budgetOriginalCents),
-      budgetCurrentCents: dollarStringToCents(data.budgetCurrentCents),
+      budgetOriginalCents: dollarStringToCentsString(data.budgetOriginalCents),
+      budgetCurrentCents: dollarStringToCentsString(data.budgetCurrentCents),
     });
 
     modals.closeAll();
