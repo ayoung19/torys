@@ -47,7 +47,7 @@ model Employee {
   displayId String
   name String
   phoneNumber String
-  ratePrivateCentsPerHour Int @default(0)
+  ratePrivateCentsPerHour Int
   rateDavisBaconCentsPerHour Int
   rateDavisBaconOvertimeCentsPerHour Int
 }
@@ -64,7 +64,7 @@ model Job {
   name String
   budgetOriginalCents Int?
   budgetCurrentCents Int?
-  jobType JobType @default(PRIVATE)
+  jobType JobType
 }
 
 
@@ -101,7 +101,7 @@ model Entry {
   employeeId String
 
   // Approved by admin and counted in timesheet.
-  isApproved Boolean @default(true)
+  isApproved Boolean
   // Confirmed by employee the entry is for.
   isConfirmed Boolean
 
