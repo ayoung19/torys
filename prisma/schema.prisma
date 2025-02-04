@@ -102,10 +102,15 @@ model Entry {
 
   // Approved by admin and counted in timesheet.
   isApproved Boolean
-  // Confirmed by employee the entry is for.
-  isConfirmed Boolean
+  entryConfirmationStatus EntryConfirmationStatus @default(INITIAL)
 
   timeInSeconds Int
   timeOutSeconds Int
   lunchSeconds Int
+}
+
+enum EntryConfirmationStatus {
+  INITIAL
+  TEXT_SENT
+  CONFIRMED
 }
