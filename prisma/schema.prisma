@@ -42,15 +42,14 @@ model Employee {
 
   entries Entry[]
 
+  // Allowed to be added to entry.
   isActive Boolean
   displayId String
   name String
   phoneNumber String
-  rateResidentialCentsPerHour Int
-  rateCommercialCentsPerHour Int
+  ratePrivateCentsPerHour Int @default(0)
   rateDavisBaconCentsPerHour Int
   rateDavisBaconOvertimeCentsPerHour Int
-  rateDriveTimeCentsPerHour Int
 }
 
 model Job {
@@ -65,21 +64,14 @@ model Job {
   name String
   budgetOriginalCents Int?
   budgetCurrentCents Int?
-  rateType RateType
-  overtimeType OvertimeType
+  jobType JobType @default(PRIVATE)
 }
 
 
-enum RateType {
-  RESIDENTIAL
-  COMMERCIAL
-  DAVIS_BACON
-  DRIVE_TIME
-}
-
-enum OvertimeType {
-  DAILY
-  WEEKLY
+enum JobType {
+  PRIVATE
+  STATE
+  FEDERAL
 }
 
 model Day {
@@ -109,17 +101,11 @@ model Entry {
   employeeId String
 
   // Approved by admin and counted in timesheet.
-  isValid Boolean
+  isApproved Boolean @default(true)
   // Confirmed by employee the entry is for.
   isConfirmed Boolean
 
   timeInSeconds Int
   timeOutSeconds Int
   lunchSeconds Int
-  entryType EntryType
-}
-
-enum EntryType {
-  ROOFING
-  CARPENTRY
 }
