@@ -108,7 +108,9 @@ model Entry {
   employee Employee @relation(fields: [timesheetId, employeeId], references: [timesheetId, employeeId])
   employeeId String
 
+  // Approved by admin and counted in timesheet.
   isValid Boolean
+  // Confirmed by employee the entry is for.
   isConfirmed Boolean
 
   timeInSeconds Int
