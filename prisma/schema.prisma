@@ -102,7 +102,7 @@ model Entry {
 
   // Approved by admin and counted in timesheet.
   isApproved Boolean
-  entryConfirmationStatus EntryConfirmationStatus @default(UNINITIALIZED)
+  entryConfirmationStatus EntryConfirmationStatus
 
   timeInSeconds Int
   timeOutSeconds Int
