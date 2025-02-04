@@ -2,7 +2,7 @@ import { TimesheetJobDayPage } from "@/components/TimesheetJobDayPage";
 import prisma from "@/db";
 import { StringifyValues } from "@/utils/types";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { AccountType, Day, Entry, EntryType } from "@prisma/client";
+import { AccountType, Day, Entry } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -12,7 +12,6 @@ const updateEntryBodySchema = z.object({
   timeInSeconds: z.coerce.number().int(),
   timeOutSeconds: z.coerce.number().int(),
   lunchSeconds: z.coerce.number().int(),
-  entryType: z.enum([EntryType.ROOFING, EntryType.CARPENTRY]),
 });
 
 const updateDayBodySchema = z.object({
@@ -102,12 +101,11 @@ export default async function Page({
           jobId,
           dayId: parseInt(dayId),
           employeeId,
-          isValid: true,
+          isApproved: true,
           isConfirmed: false,
           timeInSeconds: 0,
           timeOutSeconds: 0,
           lunchSeconds: 0,
-          entryType: EntryType.ROOFING,
         },
       });
     });
@@ -118,13 +116,13 @@ export default async function Page({
   async function updateEntry(
     body: Pick<
       StringifyValues<Entry>,
-      "entryId" | "timeInSeconds" | "timeOutSeconds" | "lunchSeconds" | "entryType"
+      "entryId" | "timeInSeconds" | "timeOutSeconds" | "lunchSeconds"
     >,
   ) {
     "use server";
 
     await handleEntry(timesheetId, jobId, dayId, async () => {
-      const { entryId, timeInSeconds, timeOutSeconds, lunchSeconds, entryType } =
+      const { entryId, timeInSeconds, timeOutSeconds, lunchSeconds } =
         updateEntryBodySchema.parse(body);
 
       if (
@@ -187,7 +185,6 @@ export default async function Page({
           timeInSeconds,
           timeOutSeconds,
           lunchSeconds,
-          entryType,
         },
       });
     });
@@ -270,12 +267,11 @@ export default async function Page({
             jobId,
             dayId: parseInt(dayId),
             employeeId,
-            isValid: true,
+            isApproved: true,
             isConfirmed: false,
             timeInSeconds: 0,
             timeOutSeconds: 0,
             lunchSeconds: 0,
-            entryType: EntryType.ROOFING,
           })),
         }),
         prisma.entry.deleteMany({

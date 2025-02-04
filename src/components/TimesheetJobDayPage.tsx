@@ -24,7 +24,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { TZDate } from "@date-fns/tz";
-import { Account, Day, Employee, Entry, EntryType, Job, Timesheet } from "@prisma/client";
+import { Account, Day, Employee, Entry, Job, Timesheet } from "@prisma/client";
 import {
   Controller,
   Field,
@@ -54,7 +54,7 @@ interface Props {
   updateEntry: (
     body: Pick<
       StringifyValues<Entry>,
-      "entryId" | "timeInSeconds" | "timeOutSeconds" | "lunchSeconds" | "entryType"
+      "entryId" | "timeInSeconds" | "timeOutSeconds" | "lunchSeconds"
     >,
   ) => Promise<void>;
   deleteEntry: (entryId: string) => Promise<void>;
@@ -209,7 +209,6 @@ export const TimesheetJobDayPage = ({
                             timeInSeconds: entry.timeInSeconds.toString(),
                             timeOutSeconds: entry.timeOutSeconds.toString(),
                             lunchSeconds: secondsToHourString(entry.lunchSeconds),
-                            entryType: entry.entryType.toString(),
                           },
                           onSubmit: async (data) => {
                             // TODO: Notify conflicts.
@@ -251,15 +250,6 @@ export const TimesheetJobDayPage = ({
                                 type="number"
                                 step={0.5}
                                 min={0}
-                              />
-                              <Field
-                                name="entryType"
-                                label="Type"
-                                type="select"
-                                options={[
-                                  { label: "Roofing", value: EntryType.ROOFING },
-                                  { label: "Carpentry", value: EntryType.CARPENTRY },
-                                ]}
                               />
                             </FormLayout>
                           ),
@@ -321,7 +311,6 @@ export const TimesheetJobDayPage = ({
                         timeInSeconds: "0",
                         timeOutSeconds: "0",
                         lunchSeconds: secondsToHourString(0),
-                        entryType: EntryType.ROOFING.toString(),
                       },
                       onSubmit: async (data) => {
                         // TODO: Notify conflicts.
@@ -367,15 +356,6 @@ export const TimesheetJobDayPage = ({
                             type="number"
                             step={0.5}
                             min={0}
-                          />
-                          <Field
-                            name="entryType"
-                            label="Type"
-                            type="select"
-                            options={[
-                              { label: "Roofing", value: EntryType.ROOFING },
-                              { label: "Carpentry", value: EntryType.CARPENTRY },
-                            ]}
                           />
                         </FormLayout>
                       ),

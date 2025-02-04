@@ -4,7 +4,7 @@ import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
 import { StringifyValues } from "@/utils/types";
 import { auth } from "@clerk/nextjs/server";
-import { Job, OvertimeType, RateType } from "@prisma/client";
+import { Job, JobType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -15,13 +15,7 @@ const jobSchema = z.object({
   name: z.string(),
   budgetOriginalCents: z.coerce.number().int().nullable(),
   budgetCurrentCents: z.coerce.number().int().nullable(),
-  rateType: z.enum([
-    RateType.RESIDENTIAL,
-    RateType.COMMERCIAL,
-    RateType.DAVIS_BACON,
-    RateType.DRIVE_TIME,
-  ]),
-  overtimeType: z.enum([OvertimeType.DAILY, OvertimeType.WEEKLY]),
+  jobType: z.enum([JobType.PRIVATE, JobType.STATE, JobType.FEDERAL]),
 });
 
 export default async function Page() {

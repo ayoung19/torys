@@ -15,11 +15,9 @@ const employeeSchema = z.object({
   displayId: z.string(),
   name: z.string(),
   phoneNumber: z.string(),
-  rateResidentialCentsPerHour: z.coerce.number().int(),
-  rateCommercialCentsPerHour: z.coerce.number().int(),
+  ratePrivateCentsPerHour: z.coerce.number().int(),
   rateDavisBaconCentsPerHour: z.coerce.number().int(),
   rateDavisBaconOvertimeCentsPerHour: z.coerce.number().int(),
-  rateDriveTimeCentsPerHour: z.coerce.number().int(),
 });
 
 export default async function Page() {

@@ -26,37 +26,21 @@ const formChildren = ({ Field }: FormRenderContext<StringifyValues<Employee>>) =
     <Field name="displayId" label="ID" type="text" isRequired={true} rules={{ required: true }} />
     <Field name="name" label="Name" type="text" isRequired={true} rules={{ required: true }} />
     <Field name="phoneNumber" label="Phone Number" type="text" />
-    <FormLayout columns={2}>
-      <Field
-        name="rateResidentialCentsPerHour"
-        label="Residential"
-        type="number"
-        step={0.01}
-        min={0}
-      />
-      <Field
-        name="rateCommercialCentsPerHour"
-        label="Commercial"
-        type="number"
-        step={0.01}
-        min={0}
-      />
-      <Field
-        name="rateDavisBaconCentsPerHour"
-        label="Davis Bacon"
-        type="number"
-        step={0.01}
-        min={0}
-      />
-      <Field
-        name="rateDavisBaconOvertimeCentsPerHour"
-        label="Davis Bacon OT"
-        type="number"
-        step={0.01}
-        min={0}
-      />
-    </FormLayout>
-    <Field name="rateDriveTimeCentsPerHour" label="Drive Time" type="number" step={0.01} min={0} />
+    <Field name="ratePrivateCentsPerHour" label="Private" type="number" step={0.01} min={0} />
+    <Field
+      name="rateDavisBaconCentsPerHour"
+      label="Davis Bacon"
+      type="number"
+      step={0.01}
+      min={0}
+    />
+    <Field
+      name="rateDavisBaconOvertimeCentsPerHour"
+      label="Davis Bacon OT"
+      type="number"
+      step={0.01}
+      min={0}
+    />
   </FormLayout>
 );
 
@@ -77,13 +61,11 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
   const formOnSubmit = async (data: StringifyValues<Employee>) => {
     await upsertAction({
       ...data,
-      rateResidentialCentsPerHour: dollarStringToCentsString(data.rateResidentialCentsPerHour),
-      rateCommercialCentsPerHour: dollarStringToCentsString(data.rateCommercialCentsPerHour),
+      ratePrivateCentsPerHour: dollarStringToCentsString(data.ratePrivateCentsPerHour),
       rateDavisBaconCentsPerHour: dollarStringToCentsString(data.rateDavisBaconCentsPerHour),
       rateDavisBaconOvertimeCentsPerHour: dollarStringToCentsString(
         data.rateDavisBaconOvertimeCentsPerHour,
       ),
-      rateDriveTimeCentsPerHour: dollarStringToCentsString(data.rateDriveTimeCentsPerHour),
     });
 
     modals.closeAll();
@@ -108,12 +90,8 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
     columnHelper.accessor("phoneNumber", {
       header: "Phone Number",
     }),
-    columnHelper.accessor("rateResidentialCentsPerHour", {
-      header: "Residential",
-      cell: (props) => centsToDollarString(props.getValue()),
-    }),
-    columnHelper.accessor("rateCommercialCentsPerHour", {
-      header: "Commercial",
+    columnHelper.accessor("ratePrivateCentsPerHour", {
+      header: "Private",
       cell: (props) => centsToDollarString(props.getValue()),
     }),
     columnHelper.accessor("rateDavisBaconCentsPerHour", {
@@ -122,10 +100,6 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
     }),
     columnHelper.accessor("rateDavisBaconOvertimeCentsPerHour", {
       header: "Davis Bacon OT",
-      cell: (props) => centsToDollarString(props.getValue()),
-    }),
-    columnHelper.accessor("rateDriveTimeCentsPerHour", {
-      header: "Drive Time",
       cell: (props) => centsToDollarString(props.getValue()),
     }),
     columnHelper.display({
@@ -145,20 +119,14 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
                   displayId: props.row.original.displayId,
                   name: props.row.original.name,
                   phoneNumber: props.row.original.phoneNumber,
-                  rateResidentialCentsPerHour: centsToDollarString(
-                    props.row.original.rateResidentialCentsPerHour,
-                  ),
-                  rateCommercialCentsPerHour: centsToDollarString(
-                    props.row.original.rateCommercialCentsPerHour,
+                  ratePrivateCentsPerHour: centsToDollarString(
+                    props.row.original.ratePrivateCentsPerHour,
                   ),
                   rateDavisBaconCentsPerHour: centsToDollarString(
                     props.row.original.rateDavisBaconCentsPerHour,
                   ),
                   rateDavisBaconOvertimeCentsPerHour: centsToDollarString(
                     props.row.original.rateDavisBaconOvertimeCentsPerHour,
-                  ),
-                  rateDriveTimeCentsPerHour: centsToDollarString(
-                    props.row.original.rateDriveTimeCentsPerHour,
                   ),
                 },
                 onSubmit: formOnSubmit,
@@ -188,11 +156,9 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
                 displayId: "",
                 name: "",
                 phoneNumber: "",
-                rateResidentialCentsPerHour: centsToDollarString(0),
-                rateCommercialCentsPerHour: centsToDollarString(0),
+                ratePrivateCentsPerHour: centsToDollarString(0),
                 rateDavisBaconCentsPerHour: centsToDollarString(0),
                 rateDavisBaconOvertimeCentsPerHour: centsToDollarString(0),
-                rateDriveTimeCentsPerHour: centsToDollarString(0),
               },
               onSubmit: formOnSubmit,
               children: formChildren,
@@ -208,7 +174,10 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
           data={employees}
           getPaginationRowModel={getPaginationRowModel()}
           initialState={{
-            sorting: [{ id: "isActive", desc: true }],
+            sorting: [
+              { id: "isActive", desc: true },
+              { id: "name", desc: false },
+            ],
           }}
           state={{
             pagination: {

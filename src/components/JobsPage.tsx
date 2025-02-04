@@ -5,7 +5,7 @@ import { currentTimesheetId } from "@/utils/date";
 import { StringifyValues } from "@/utils/types";
 import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
-import { Job, OvertimeType, RateType } from "@prisma/client";
+import { Job, JobType } from "@prisma/client";
 import { DataTable, FormLayout, FormRenderContext, useModals } from "@saas-ui/react";
 import { createColumnHelper, getPaginationRowModel } from "@tanstack/react-table";
 import { Pagination } from "./Pagination";
@@ -29,23 +29,13 @@ const formChildren = ({ Field }: FormRenderContext<StringifyValues<Job>>) => (
       <Field name="budgetCurrentCents" label="Current Budget" type="number" step={0.01} />
     </FormLayout>
     <Field
-      name="rateType"
-      label="Payrate"
+      name="jobType"
+      label="Job Type"
       type="select"
       options={[
-        { label: "Residential", value: RateType.RESIDENTIAL },
-        { label: "Commercial", value: RateType.COMMERCIAL },
-        { label: "Davis Bacon", value: RateType.DAVIS_BACON },
-        { label: "Drive Time", value: RateType.DRIVE_TIME },
-      ]}
-    />
-    <Field
-      name="overtimeType"
-      label="OT Type"
-      type="select"
-      options={[
-        { label: "Daily", value: OvertimeType.DAILY },
-        { label: "Weekly", value: OvertimeType.WEEKLY },
+        { label: "Private", value: JobType.PRIVATE },
+        { label: "State", value: JobType.STATE },
+        { label: "Federal", value: JobType.FEDERAL },
       ]}
     />
   </FormLayout>
@@ -88,6 +78,7 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
     columnHelper.accessor("name", {
       header: "Name",
     }),
+    // TODO: Allow setting field to null.
     columnHelper.accessor("budgetOriginalCents", {
       header: "Original Budget",
       cell: (props) => {
@@ -104,11 +95,8 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
         return value && centsToDollarString(value);
       },
     }),
-    columnHelper.accessor("rateType", {
-      header: "Payrate",
-    }),
-    columnHelper.accessor("overtimeType", {
-      header: "OT Type",
+    columnHelper.accessor("jobType", {
+      header: "Job Type",
     }),
     columnHelper.display({
       id: "actions",
@@ -131,8 +119,7 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
                   budgetCurrentCents: centsToDollarString(
                     props.row.original.budgetCurrentCents || 0,
                   ),
-                  rateType: props.row.original.rateType.toString(),
-                  overtimeType: props.row.original.overtimeType.toString(),
+                  jobType: props.row.original.jobType.toString(),
                 },
                 onSubmit: formOnSubmit,
                 children: formChildren,
@@ -161,8 +148,7 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
                 name: "",
                 budgetOriginalCents: centsToDollarString(0),
                 budgetCurrentCents: centsToDollarString(0),
-                rateType: RateType.RESIDENTIAL.toString(),
-                overtimeType: OvertimeType.DAILY.toString(),
+                jobType: JobType.PRIVATE.toString(),
               },
               onSubmit: formOnSubmit,
               children: formChildren,
@@ -178,7 +164,10 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
           data={jobs}
           getPaginationRowModel={getPaginationRowModel()}
           initialState={{
-            sorting: [{ id: "isActive", desc: true }],
+            sorting: [
+              { id: "isActive", desc: true },
+              { id: "name", desc: false },
+            ],
           }}
           state={{
             pagination: {
