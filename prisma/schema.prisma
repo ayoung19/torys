@@ -102,7 +102,7 @@ model Entry {
 
   // Approved by admin and counted in timesheet.
   isApproved Boolean
-  entryConfirmationStatus EntryConfirmationStatus @default(INITIAL)
+  entryConfirmationStatus EntryConfirmationStatus @default(UNINITIALIZED)
 
   timeInSeconds Int
   timeOutSeconds Int
@@ -110,7 +110,7 @@ model Entry {
 }
 
 enum EntryConfirmationStatus {
-  INITIAL
-  TEXT_SENT
+  UNINITIALIZED
+  AWAITING
   CONFIRMED
 }
