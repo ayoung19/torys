@@ -19,23 +19,19 @@ import {
   Flex,
   IconButton,
   SimpleGrid,
-  Spacer,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import { TZDate } from "@date-fns/tz";
-import { Account, Day, Employee, Entry, Job, Timesheet } from "@prisma/client";
+import { Day, Employee, Entry, Job, Timesheet } from "@prisma/client";
 import {
   Controller,
-  Field,
-  Form,
   FormLayout,
   Link,
   Property,
   PropertyLabel,
   PropertyList,
   PropertyValue,
-  SubmitButton,
   useModals,
 } from "@saas-ui/react";
 import { addDays, format, parse, startOfWeek } from "date-fns";
