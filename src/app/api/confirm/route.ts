@@ -4,17 +4,23 @@ import { TZDate } from "@date-fns/tz";
 import { EntryConfirmationStatus } from "@prisma/client";
 import { getDay } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-
-const schema = z.object({
-  From: z.string(),
-  Body: z.string(),
-});
 
 export async function POST(req: NextRequest) {
-  const { From, Body } = schema.parse(await req.formData());
+  const formData = await req.formData();
 
-  if (Body.toLowerCase() !== "ok") {
+  const From = formData.get("From");
+  const Body = formData.get("Body");
+
+  if (From === null || Body === null) {
+    return NextResponse.json(
+      {},
+      {
+        status: 400,
+      },
+    );
+  }
+
+  if (Body.toString().toLowerCase() !== "ok") {
     return NextResponse.json({});
   }
 
@@ -25,7 +31,7 @@ export async function POST(req: NextRequest) {
       dayId: getDay(TZDate.tz("Pacific/Honolulu")),
       entryConfirmationStatus: EntryConfirmationStatus.AWAITING,
       employee: {
-        phoneNumber: From.replace("+1", ""),
+        phoneNumber: From.toString().replace("+1", ""),
       },
     },
     data: {
