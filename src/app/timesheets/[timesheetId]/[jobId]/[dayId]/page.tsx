@@ -274,7 +274,7 @@ export default async function Page({
         return;
       }
 
-      await Promise.allSettled([
+      await Promise.all([
         prisma.entry.createMany({
           data: previousDayActiveEmployeeIds.map((employeeId) => ({
             timesheetId,
@@ -377,18 +377,25 @@ export default async function Page({
         },
       });
 
-      await Promise.allSettled(
-        employeeIds.map((employeeId) =>
-          client.messages.create({
-            body: JSON.stringify(
-              entries.filter((entry) => entry.employeeId === employeeId),
-              null,
-              2,
-            ),
-            from: "+18082044203",
-            to: `+1${entries.find((entry) => entry.employeeId === employeeId)?.employee.phoneNumber}`,
-          }),
-        ),
+      await Promise.all(
+        employeeIds.flatMap((employeeId) => {
+          const phoneNumber = entries.find((entry) => entry.employeeId === employeeId)?.employee
+            .phoneNumber;
+
+          if (phoneNumber) {
+            return client.messages.create({
+              body: JSON.stringify(
+                entries.filter((entry) => entry.employeeId === employeeId),
+                null,
+                2,
+              ),
+              from: "+18082044203",
+              to: `+1${phoneNumber}`,
+            });
+          } else {
+            return [];
+          }
+        }),
       );
     });
 
