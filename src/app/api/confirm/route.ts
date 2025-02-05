@@ -12,7 +12,7 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const { From, Body } = schema.parse(await req.json());
+  const { From, Body } = schema.parse(await req.formData());
 
   if (Body.toLowerCase() !== "ok") {
     return NextResponse.json({});
