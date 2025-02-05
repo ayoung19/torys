@@ -8,10 +8,15 @@ import { z } from "zod";
 
 const schema = z.object({
   From: z.string(),
+  Body: z.string(),
 });
 
 export async function POST(req: NextRequest) {
-  const { From } = schema.parse(await req.json());
+  const { From, Body } = schema.parse(await req.json());
+
+  if (Body.toLowerCase() !== "ok") {
+    return NextResponse.json({});
+  }
 
   // Confirm all entries today that were awaiting confirmation from the provided employee.
   await prisma.entry.updateMany({
