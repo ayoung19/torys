@@ -20,7 +20,7 @@ interface Props {
 export const TimesheetJobsPage = ({ timesheet, jobs }: Props) => {
   return (
     <Stack>
-      <Breadcrumb mb="2">
+      <Breadcrumb mb="2" flexWrap="wrap">
         <BreadcrumbItem isCurrentPage>
           <BreadcrumbLink
             href={

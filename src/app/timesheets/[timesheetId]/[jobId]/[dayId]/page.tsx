@@ -371,6 +371,11 @@ export default async function Page({
               )
               .map((entry) => entry.entryId),
           },
+          employee: {
+            phoneNumber: {
+              not: "",
+            },
+          },
         },
         data: {
           entryConfirmationStatus: EntryConfirmationStatus.AWAITING,

@@ -22,7 +22,7 @@ interface Props {
 export const TimesheetJobDaysPage = ({ timesheet, job, days }: Props) => {
   return (
     <Stack>
-      <Breadcrumb mb="2">
+      <Breadcrumb mb="2" flexWrap="wrap">
         <BreadcrumbItem>
           <BreadcrumbLink
             as={Link}
