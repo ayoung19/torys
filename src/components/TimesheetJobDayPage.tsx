@@ -23,7 +23,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { TZDate } from "@date-fns/tz";
-import { Day, Employee, Entry, Job, Timesheet } from "@prisma/client";
+import { Day, Employee, Entry, EntryConfirmationStatus, Job, Timesheet } from "@prisma/client";
 import {
   Controller,
   FormLayout,
@@ -37,6 +37,7 @@ import {
 import { addDays, format, parse, startOfWeek } from "date-fns";
 import { useCallback } from "react";
 import { FiTrash } from "react-icons/fi";
+import { match } from "ts-pattern";
 import { TimeInput } from "./TimeInput";
 
 interface Props {
@@ -56,6 +57,7 @@ interface Props {
   deleteEntry: (entryId: string) => Promise<void>;
   copyCrew: () => Promise<void>;
   updateDay: (body: Pick<StringifyValues<Day>, "description">) => Promise<void>;
+  getConfirmations: () => Promise<void>;
 }
 
 export const TimesheetJobDayPage = ({
@@ -70,6 +72,7 @@ export const TimesheetJobDayPage = ({
   deleteEntry,
   copyCrew,
   updateDay,
+  getConfirmations,
 }: Props) => {
   const modals = useModals();
 
@@ -186,6 +189,7 @@ export const TimesheetJobDayPage = ({
           <Divider />
           <Stack divider={<Divider />} spacing={0}>
             {entries
+              .toSorted((a, b) => a.entryId.localeCompare(b.entryId))
               .toSorted((a, b) =>
                 (getEmployeeById(a.employeeId)?.name || "").localeCompare(
                   getEmployeeById(b.employeeId)?.name || "",
@@ -194,66 +198,80 @@ export const TimesheetJobDayPage = ({
               .map((entry) => (
                 <SimpleGrid key={entry.entryId} columns={4} p={4}>
                   <Stack justify="end" align="start" spacing={0}>
-                    <Button
-                      colorScheme="blue"
-                      variant="link"
-                      fontSize="lg"
-                      onClick={() =>
-                        modals.form({
-                          title: "Edit Crew Member",
-                          defaultValues: {
-                            timeInSeconds: entry.timeInSeconds.toString(),
-                            timeOutSeconds: entry.timeOutSeconds.toString(),
-                            lunchSeconds: secondsToHourString(entry.lunchSeconds),
-                          },
-                          onSubmit: async (data) => {
-                            // TODO: Notify conflicts.
-                            await updateEntry({
-                              entryId: entry.entryId,
-                              ...data,
-                              lunchSeconds: hourStringToSecondsString(data.lunchSeconds),
-                            });
+                    <Stack direction="row" align="center" spacing="2">
+                      <Button
+                        colorScheme="blue"
+                        variant="link"
+                        fontSize="lg"
+                        onClick={() =>
+                          modals.form({
+                            title: "Edit Crew Member",
+                            defaultValues: {
+                              timeInSeconds: entry.timeInSeconds.toString(),
+                              timeOutSeconds: entry.timeOutSeconds.toString(),
+                              lunchSeconds: secondsToHourString(entry.lunchSeconds),
+                            },
+                            onSubmit: async (data) => {
+                              // TODO: Notify conflicts.
+                              await updateEntry({
+                                entryId: entry.entryId,
+                                ...data,
+                                lunchSeconds: hourStringToSecondsString(data.lunchSeconds),
+                              });
 
-                            modals.closeAll();
-                          },
-                          children: ({ Field, control }) => (
-                            <FormLayout>
-                              <Controller
-                                name="timeInSeconds"
-                                control={control}
-                                render={({ field }) => (
-                                  <TimeInput
-                                    label="Time In"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                  />
-                                )}
-                              />
-                              <Controller
-                                name="timeOutSeconds"
-                                control={control}
-                                render={({ field }) => (
-                                  <TimeInput
-                                    label="Time Out"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                  />
-                                )}
-                              />
-                              <Field
-                                name="lunchSeconds"
-                                label="Lunch Hours"
-                                type="number"
-                                step={0.5}
-                                min={0}
-                              />
-                            </FormLayout>
-                          ),
-                        })
-                      }
-                    >
-                      {employees.find((employee) => employee.employeeId === entry.employeeId)?.name}
-                    </Button>
+                              modals.closeAll();
+                            },
+                            children: ({ Field, control }) => (
+                              <FormLayout>
+                                <Controller
+                                  name="timeInSeconds"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <TimeInput
+                                      label="Time In"
+                                      value={field.value}
+                                      onChange={field.onChange}
+                                    />
+                                  )}
+                                />
+                                <Controller
+                                  name="timeOutSeconds"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <TimeInput
+                                      label="Time Out"
+                                      value={field.value}
+                                      onChange={field.onChange}
+                                    />
+                                  )}
+                                />
+                                <Field
+                                  name="lunchSeconds"
+                                  label="Lunch Hours"
+                                  type="number"
+                                  step={0.5}
+                                  min={0}
+                                />
+                              </FormLayout>
+                            ),
+                          })
+                        }
+                      >
+                        {
+                          employees.find((employee) => employee.employeeId === entry.employeeId)
+                            ?.name
+                        }
+                      </Button>
+                      {match(entry.entryConfirmationStatus)
+                        .with(EntryConfirmationStatus.UNINITIALIZED, () => <Badge>Not Sent</Badge>)
+                        .with(EntryConfirmationStatus.AWAITING, () => (
+                          <Badge colorScheme="orange">Awaiting Confirmation</Badge>
+                        ))
+                        .with(EntryConfirmationStatus.CONFIRMED, () => (
+                          <Badge colorScheme="green">Confirmed</Badge>
+                        ))
+                        .exhaustive()}
+                    </Stack>
                     <Text
                       fontSize="lg"
                       opacity={
@@ -364,8 +382,9 @@ export const TimesheetJobDayPage = ({
                   Copy Crew
                 </Button>
               </Flex>
-              {/* TODO: Get confirmations */}
-              <Button colorScheme="purple">Get Confirmations</Button>
+              <Button colorScheme="purple" onClick={() => getConfirmations()}>
+                Get Confirmations
+              </Button>
             </Stack>
           </Stack>
         </CardBody>

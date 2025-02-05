@@ -2,10 +2,15 @@ import { TimesheetJobDayPage } from "@/components/TimesheetJobDayPage";
 import prisma from "@/db";
 import { StringifyValues } from "@/utils/types";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { AccountType, Day, Entry } from "@prisma/client";
+import { TZDate } from "@date-fns/tz";
+import { AccountType, Day, Entry, EntryConfirmationStatus } from "@prisma/client";
+import { getDay } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+import twilio from "twilio";
 import { z } from "zod";
+
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 const updateEntryBodySchema = z.object({
   entryId: z.string(),
@@ -41,6 +46,14 @@ const handleEntry = async (
       },
     }),
   ]);
+
+  // Foreman can only modify today.
+  if (
+    actor.accountType === AccountType.FOREMAN &&
+    day.dayId !== getDay(TZDate.tz("Pacific/Honolulu"))
+  ) {
+    throw new Error("forbidden");
+  }
 
   // Foreman can only modify days that have not been edited or that they've previously edited.
   if (
@@ -102,7 +115,7 @@ export default async function Page({
           dayId: parseInt(dayId),
           employeeId,
           isApproved: true,
-          isConfirmed: false,
+          entryConfirmationStatus: EntryConfirmationStatus.UNINITIALIZED,
           timeInSeconds: 0,
           timeOutSeconds: 0,
           lunchSeconds: 0,
@@ -182,6 +195,7 @@ export default async function Page({
           },
         },
         data: {
+          entryConfirmationStatus: EntryConfirmationStatus.UNINITIALIZED,
           timeInSeconds,
           timeOutSeconds,
           lunchSeconds,
@@ -268,7 +282,7 @@ export default async function Page({
             dayId: parseInt(dayId),
             employeeId,
             isApproved: true,
-            isConfirmed: false,
+            entryConfirmationStatus: EntryConfirmationStatus.UNINITIALIZED,
             timeInSeconds: 0,
             timeOutSeconds: 0,
             lunchSeconds: 0,
@@ -308,6 +322,74 @@ export default async function Page({
           description,
         },
       });
+    });
+
+    revalidatePath(`/timesheets/${timesheetId}/${jobId}/${dayId}`);
+  }
+
+  async function getConfirmations() {
+    "use server";
+
+    await handleEntry(timesheetId, jobId, dayId, async () => {
+      const day = await prisma.day.findUniqueOrThrow({
+        where: {
+          dayPrimaryKey: {
+            timesheetId,
+            jobId,
+            dayId: parseInt(dayId),
+          },
+        },
+        include: {
+          entries: true,
+        },
+      });
+
+      const employeeIds = Array.from(new Set(day.entries.map((entry) => entry.employeeId)));
+
+      const entries = await prisma.entry.findMany({
+        where: {
+          timesheetId,
+          dayId: parseInt(dayId),
+          employeeId: {
+            in: employeeIds,
+          },
+        },
+        include: {
+          employee: true,
+        },
+      });
+
+      await prisma.entry.updateMany({
+        where: {
+          timesheetId,
+          jobId,
+          dayId: parseInt(dayId),
+          entryId: {
+            in: entries
+              .filter(
+                (entry) => entry.entryConfirmationStatus === EntryConfirmationStatus.UNINITIALIZED,
+              )
+              .map((entry) => entry.entryId),
+          },
+        },
+        data: {
+          entryConfirmationStatus: EntryConfirmationStatus.AWAITING,
+        },
+      });
+
+      await Promise.allSettled(
+        employeeIds.map((employeeId) =>
+          client.messages.create({
+            body: JSON.stringify(
+              entries.filter((entry) => entry.employeeId === employeeId),
+              null,
+              2,
+            ),
+            from: "+18082044203",
+            to: `+1${entries.find((entry) => entry.employeeId === employeeId)?.employee.phoneNumber}`,
+          }),
+        ),
+      );
     });
 
     revalidatePath(`/timesheets/${timesheetId}/${jobId}/${dayId}`);
@@ -359,6 +441,7 @@ export default async function Page({
       deleteEntry={deleteEntry}
       copyCrew={copyCrew}
       updateDay={updateDay}
+      getConfirmations={getConfirmations}
     />
   );
 }

@@ -69,7 +69,9 @@ export const TimeInput = ({ label, value, onChange }: Props) => {
       </Stack>
       <MenuList maxH="200px" overflowY="auto">
         {options.map(({ label, value }) => (
-          <MenuItem key={value} onClick={() => onChange((value / 1000).toString())}>{label}</MenuItem>
+          <MenuItem key={value} onClick={() => onChange((value / 1000).toString())}>
+            {label}
+          </MenuItem>
         ))}
       </MenuList>
     </Menu>
