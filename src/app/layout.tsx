@@ -7,6 +7,7 @@ import { AppShell, ModalsProvider, SaasProvider } from "@saas-ui/react";
 import { endOfWeek, format } from "date-fns";
 import type { Metadata } from "next";
 import Link from "next/link";
+import NextTopLoader from "nextjs-toploader";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +97,7 @@ export default async function RootLayout({
     <ClerkProvider>
       <html lang="en" data-theme="light">
         <body>
+          <NextTopLoader color="#8952e0" height={2} showSpinner={false} shadow={false} />
           <SaasProvider linkComponent={Link}>
             <ModalsProvider>
               <AppShell navbar={<SmartNavbar />}>

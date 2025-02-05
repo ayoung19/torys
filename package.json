@@ -27,6 +27,7 @@
     "framer-motion": "^11.13.5",
     "fuzzysort": "^3.1.0",
     "next": "14.2.8",
+    "nextjs-toploader": "^3.7.15",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.4.0",
