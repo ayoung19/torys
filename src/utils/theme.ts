@@ -2,7 +2,6 @@
 
 import { extendTheme } from "@chakra-ui/react";
 import { theme as baseTheme } from "@saas-ui/react";
-import "@fontsource-variable/inter";
 
 export const theme = extendTheme(
   {
