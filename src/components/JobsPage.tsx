@@ -1,8 +1,9 @@
 "use client";
 
+import { useActionResult } from "@/hooks/useActionResult";
 import { centsToDollarString, dollarStringToCentsString } from "@/utils/currency";
 import { currentTimesheetId } from "@/utils/date";
-import { StringifyValues } from "@/utils/types";
+import { ActionResult, StringifyValues } from "@/utils/types";
 import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
 import { Job, JobType } from "@prisma/client";
@@ -43,7 +44,7 @@ const formChildren = ({ Field }: FormRenderContext<StringifyValues<Job>>) => (
 
 interface Props {
   jobs: Job[];
-  upsertAction: (job: StringifyValues<Job>) => Promise<void>;
+  upsertAction: (job: StringifyValues<Job>) => Promise<ActionResult>;
 }
 
 export const JobsPage = ({ jobs, upsertAction }: Props) => {
@@ -51,19 +52,19 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
   const total = Math.ceil(jobs.length / pageSize);
 
   const modals = useModals();
+  const actionResult = useActionResult();
   const pagination = usePagination({
     total,
   });
 
-  const formOnSubmit = async (data: StringifyValues<Job>) => {
-    await upsertAction({
-      ...data,
-      budgetOriginalCents: dollarStringToCentsString(data.budgetOriginalCents),
-      budgetCurrentCents: dollarStringToCentsString(data.budgetCurrentCents),
-    });
-
-    modals.closeAll();
-  };
+  const formOnSubmit = async (data: StringifyValues<Job>) =>
+    actionResult(
+      await upsertAction({
+        ...data,
+        budgetOriginalCents: dollarStringToCentsString(data.budgetOriginalCents),
+        budgetCurrentCents: dollarStringToCentsString(data.budgetCurrentCents),
+      }),
+    );
 
   const columns = [
     columnHelper.accessor("isActive", {

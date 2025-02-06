@@ -1,8 +1,9 @@
 "use client";
 
+import { useActionResult } from "@/hooks/useActionResult";
 import { currentTimesheetId } from "@/utils/date";
 import { hourStringToSecondsString, secondsToHourString } from "@/utils/time";
-import { StringifyValues } from "@/utils/types";
+import { ActionResult, StringifyValues } from "@/utils/types";
 import {
   Alert,
   AlertDescription,
@@ -47,17 +48,17 @@ interface Props {
   entries: Entry[];
   employees: Employee[];
   editorUsername: string | null;
-  createEntry: (employeeId: string) => Promise<void>;
+  createEntry: (employeeId: string) => Promise<ActionResult>;
   updateEntry: (
     body: Pick<
       StringifyValues<Entry>,
       "entryId" | "timeInSeconds" | "timeOutSeconds" | "lunchSeconds"
     >,
-  ) => Promise<void>;
-  deleteEntry: (entryId: string) => Promise<void>;
-  copyCrew: () => Promise<void>;
-  updateDay: (body: Pick<StringifyValues<Day>, "description">) => Promise<void>;
-  getConfirmations: () => Promise<void>;
+  ) => Promise<ActionResult>;
+  deleteEntry: (entryId: string) => Promise<ActionResult>;
+  copyCrew: () => Promise<ActionResult>;
+  updateDay: (body: Pick<StringifyValues<Day>, "description">) => Promise<ActionResult>;
+  getConfirmations: () => Promise<ActionResult>;
 }
 
 export const TimesheetJobDayPage = ({
@@ -75,6 +76,7 @@ export const TimesheetJobDayPage = ({
   getConfirmations,
 }: Props) => {
   const modals = useModals();
+  const actionResult = useActionResult();
 
   const getEmployeeById = useCallback(
     (employeeId: string) => employees.find((employee) => employee.employeeId === employeeId),
@@ -142,11 +144,7 @@ export const TimesheetJobDayPage = ({
                   defaultValues: {
                     employeeId: "",
                   },
-                  onSubmit: async (data) => {
-                    await createEntry(data.employeeId);
-
-                    modals.closeAll();
-                  },
+                  onSubmit: async (data) => actionResult(await createEntry(data.employeeId)),
                   children: ({ Field }) => (
                     <FormLayout>
                       <Field
@@ -211,16 +209,14 @@ export const TimesheetJobDayPage = ({
                               timeOutSeconds: entry.timeOutSeconds.toString(),
                               lunchSeconds: secondsToHourString(entry.lunchSeconds),
                             },
-                            onSubmit: async (data) => {
-                              // TODO: Notify conflicts.
-                              await updateEntry({
-                                entryId: entry.entryId,
-                                ...data,
-                                lunchSeconds: hourStringToSecondsString(data.lunchSeconds),
-                              });
-
-                              modals.closeAll();
-                            },
+                            onSubmit: async (data) =>
+                              actionResult(
+                                await updateEntry({
+                                  entryId: entry.entryId,
+                                  ...data,
+                                  lunchSeconds: hourStringToSecondsString(data.lunchSeconds),
+                                }),
+                              ),
                             children: ({ Field, control }) => (
                               <FormLayout>
                                 <Controller
@@ -309,7 +305,7 @@ export const TimesheetJobDayPage = ({
                       colorScheme="red"
                       size="xs"
                       icon={<FiTrash />}
-                      onClick={() => deleteEntry(entry.entryId)}
+                      onClick={async () => actionResult(await deleteEntry(entry.entryId))}
                     />
                   </Stack>
                 </SimpleGrid>
@@ -327,8 +323,7 @@ export const TimesheetJobDayPage = ({
                         lunchSeconds: secondsToHourString(0),
                       },
                       onSubmit: async (data) => {
-                        // TODO: Notify conflicts.
-                        await Promise.allSettled(
+                        const results = await Promise.all(
                           entries.map((entry) =>
                             updateEntry({
                               entryId: entry.entryId,
@@ -338,7 +333,7 @@ export const TimesheetJobDayPage = ({
                           ),
                         );
 
-                        modals.closeAll();
+                        results.forEach((result) => actionResult(result));
                       },
                       children: ({ Field, control }) => (
                         <FormLayout>
@@ -378,11 +373,14 @@ export const TimesheetJobDayPage = ({
                 >
                   Set All
                 </Button>
-                <Button colorScheme="orange" onClick={() => copyCrew()}>
+                <Button colorScheme="orange" onClick={async () => actionResult(await copyCrew())}>
                   Copy Crew
                 </Button>
               </Flex>
-              <Button colorScheme="purple" onClick={() => getConfirmations()}>
+              <Button
+                colorScheme="purple"
+                onClick={async () => actionResult(await getConfirmations())}
+              >
                 Get Confirmations
               </Button>
             </Stack>
@@ -402,11 +400,7 @@ export const TimesheetJobDayPage = ({
                   defaultValues: {
                     description: day.description,
                   },
-                  onSubmit: async (data) => {
-                    await updateDay(data);
-
-                    modals.closeAll();
-                  },
+                  onSubmit: async (data) => actionResult(await updateDay(data)),
                   children: ({ Field }) => (
                     <FormLayout>
                       <Field name="description" label="Description" type="textarea" />

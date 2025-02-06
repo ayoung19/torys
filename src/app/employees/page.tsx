@@ -2,7 +2,7 @@ import { EmployeesPage } from "@/components/EmployeesPage";
 import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
-import { StringifyValues } from "@/utils/types";
+import { ActionResult, StringifyValues } from "@/utils/types";
 import { auth } from "@clerk/nextjs/server";
 import { Employee } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -21,7 +21,7 @@ const employeeSchema = z.object({
 });
 
 export default async function Page() {
-  async function upsertAction(employee: StringifyValues<Employee>) {
+  async function upsertAction(employee: StringifyValues<Employee>): Promise<ActionResult> {
     "use server";
 
     const { timesheetId, employeeId, ...rest } = employeeSchema.parse(employee);
@@ -34,7 +34,7 @@ export default async function Page() {
 
     // Actor's role must be dev or admin.
     if (!ACCOUNT_TYPES_DEV_ADMIN.includes(actor.accountType)) {
-      throw new Error("forbidden");
+      return { status: "error", message: "forbidden" };
     }
 
     await prisma.employee.upsert({
@@ -52,6 +52,8 @@ export default async function Page() {
     });
 
     revalidatePath("/employees");
+
+    return null;
   }
 
   const employees = await prisma.employee.findMany({

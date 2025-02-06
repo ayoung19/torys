@@ -1,7 +1,7 @@
 import { AccountsPage } from "@/components/AccountsPage";
 import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN, canActorModifyAccount } from "@/utils/account";
-import { StringifyValues } from "@/utils/types";
+import { ActionResult, StringifyValues } from "@/utils/types";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Account, AccountType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -20,7 +20,7 @@ const accountSchema = z.object({
 });
 
 export default async function Page() {
-  async function upsertAccountAction(account: StringifyValues<Account>) {
+  async function upsertAccountAction(account: StringifyValues<Account>): Promise<ActionResult> {
     "use server";
 
     const { accountId, ...rest } = accountSchema.parse(account);
@@ -39,7 +39,7 @@ export default async function Page() {
       actor.accountType === AccountType.ADMIN &&
       ACCOUNT_TYPES_DEV_ADMIN.includes(rest.accountType)
     ) {
-      throw new Error("forbidden");
+      return { status: "error", message: "forbidden" };
     }
 
     const existingAccount = await prisma.account.findUnique({
@@ -49,7 +49,7 @@ export default async function Page() {
     });
 
     if (existingAccount && !canActorModifyAccount(actor, existingAccount)) {
-      throw new Error("forbidden");
+      return { status: "error", message: "forbidden" };
     }
 
     await prisma.account.upsert({
@@ -64,6 +64,8 @@ export default async function Page() {
     });
 
     revalidatePath("/accounts");
+
+    return null;
   }
 
   const [actor, accounts, users] = await Promise.all([

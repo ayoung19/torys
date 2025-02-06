@@ -1,6 +1,6 @@
 import { TimesheetJobDayPage } from "@/components/TimesheetJobDayPage";
 import prisma from "@/db";
-import { StringifyValues } from "@/utils/types";
+import { ActionResult, StringifyValues } from "@/utils/types";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { TZDate } from "@date-fns/tz";
 import { AccountType, Day, Entry, EntryConfirmationStatus } from "@prisma/client";
@@ -28,8 +28,8 @@ const handleEntry = async (
   timesheetId: string,
   jobId: string,
   dayId: string,
-  cb: () => Promise<void>,
-) => {
+  cb: () => Promise<ActionResult>,
+): Promise<ActionResult> => {
   const [actor, day] = await Promise.all([
     prisma.account.findUniqueOrThrow({
       where: {
@@ -52,7 +52,7 @@ const handleEntry = async (
     actor.accountType === AccountType.FOREMAN &&
     day.dayId !== getDay(TZDate.tz("Pacific/Honolulu"))
   ) {
-    throw new Error("forbidden");
+    return { status: "error", message: "forbidden" };
   }
 
   // Foreman can only modify days that have not been edited or that they've previously edited.
@@ -61,10 +61,10 @@ const handleEntry = async (
     day.editorId !== null &&
     actor.accountId !== day.editorId
   ) {
-    throw new Error("forbidden");
+    return { status: "error", message: "forbidden" };
   }
 
-  await Promise.all([
+  const [result] = await Promise.all([
     cb(),
     // Update editor if actor is a foreman.
     actor.accountType === AccountType.FOREMAN &&
@@ -81,6 +81,10 @@ const handleEntry = async (
         },
       }),
   ]);
+
+  revalidatePath(`/timesheets/${timesheetId}/${jobId}/${dayId}`);
+
+  return result;
 };
 
 export default async function Page({
@@ -90,10 +94,10 @@ export default async function Page({
 }) {
   const { timesheetId, jobId, dayId } = await params;
 
-  async function createEntry(employeeId: string) {
+  async function createEntry(employeeId: string): Promise<ActionResult> {
     "use server";
 
-    await handleEntry(timesheetId, jobId, dayId, async () => {
+    return await handleEntry(timesheetId, jobId, dayId, async () => {
       const employee = await prisma.employee.findUniqueOrThrow({
         where: {
           employeePrimaryKey: {
@@ -105,7 +109,7 @@ export default async function Page({
 
       // Can't add inactive employees.
       if (!employee.isActive) {
-        throw new Error("forbidden");
+        return { status: "error", message: "forbidden" };
       }
 
       await prisma.entry.create({
@@ -121,9 +125,9 @@ export default async function Page({
           lunchSeconds: 0,
         },
       });
-    });
 
-    revalidatePath(`/timesheets/${timesheetId}/${jobId}/${dayId}`);
+      return null;
+    });
   }
 
   async function updateEntry(
@@ -131,10 +135,10 @@ export default async function Page({
       StringifyValues<Entry>,
       "entryId" | "timeInSeconds" | "timeOutSeconds" | "lunchSeconds"
     >,
-  ) {
+  ): Promise<ActionResult> {
     "use server";
 
-    await handleEntry(timesheetId, jobId, dayId, async () => {
+    return await handleEntry(timesheetId, jobId, dayId, async () => {
       const { entryId, timeInSeconds, timeOutSeconds, lunchSeconds } =
         updateEntryBodySchema.parse(body);
 
@@ -147,7 +151,7 @@ export default async function Page({
         timeOutSeconds > 86400 ||
         timeInSeconds > timeOutSeconds
       ) {
-        throw new Error("forbidden");
+        return { status: "error", message: "forbidden" };
       }
 
       const entry = await prisma.entry.findUniqueOrThrow({
@@ -180,7 +184,7 @@ export default async function Page({
       });
 
       if (conflictingEntries.length > 0) {
-        throw new Error("forbidden");
+        return { status: "error", message: "forbidden" };
       }
 
       // TODO: Set isValid: false for certain conditions.
@@ -201,15 +205,15 @@ export default async function Page({
           lunchSeconds,
         },
       });
-    });
 
-    revalidatePath(`/timesheets/${timesheetId}/${jobId}/${dayId}`);
+      return null;
+    });
   }
 
-  async function deleteEntry(entryId: string) {
+  async function deleteEntry(entryId: string): Promise<ActionResult> {
     "use server";
 
-    await handleEntry(timesheetId, jobId, dayId, async () => {
+    return await handleEntry(timesheetId, jobId, dayId, async () => {
       await prisma.entry.delete({
         where: {
           entryPrimaryKey: {
@@ -220,17 +224,18 @@ export default async function Page({
           },
         },
       });
-    });
 
-    revalidatePath(`/timesheets/${timesheetId}/${jobId}/${dayId}`);
+      return null;
+    });
   }
 
-  async function copyCrew() {
+  async function copyCrew(): Promise<ActionResult> {
     "use server";
 
-    await handleEntry(timesheetId, jobId, dayId, async () => {
+    return await handleEntry(timesheetId, jobId, dayId, async () => {
       if (parseInt(dayId) === 0) {
-        return;
+        // TODO: Allow this.
+        return { status: "error", message: "forbidden" };
       }
 
       const [previousDay, existingEntries] = await Promise.all([
@@ -270,8 +275,7 @@ export default async function Page({
       );
 
       if (previousDayActiveEmployeeIds.length === 0) {
-        // TODO: Return error/notification.
-        return;
+        return { status: "info", message: "No crew to copy from previous day." };
       }
 
       await Promise.all([
@@ -299,15 +303,15 @@ export default async function Page({
           },
         }),
       ]);
-    });
 
-    revalidatePath(`/timesheets/${timesheetId}/${jobId}/${dayId}`);
+      return null;
+    });
   }
 
-  async function updateDay(body: Pick<StringifyValues<Day>, "description">) {
+  async function updateDay(body: Pick<StringifyValues<Day>, "description">): Promise<ActionResult> {
     "use server";
 
-    await handleEntry(timesheetId, jobId, dayId, async () => {
+    return await handleEntry(timesheetId, jobId, dayId, async () => {
       const { description } = updateDayBodySchema.parse(body);
 
       await prisma.day.update({
@@ -322,15 +326,15 @@ export default async function Page({
           description,
         },
       });
-    });
 
-    revalidatePath(`/timesheets/${timesheetId}/${jobId}/${dayId}`);
+      return null;
+    });
   }
 
-  async function getConfirmations() {
+  async function getConfirmations(): Promise<ActionResult> {
     "use server";
 
-    await handleEntry(timesheetId, jobId, dayId, async () => {
+    return await handleEntry(timesheetId, jobId, dayId, async () => {
       const day = await prisma.day.findUniqueOrThrow({
         where: {
           dayPrimaryKey: {
@@ -402,9 +406,9 @@ export default async function Page({
           }
         }),
       );
-    });
 
-    revalidatePath(`/timesheets/${timesheetId}/${jobId}/${dayId}`);
+      return { status: "success", message: "Text confirmations have been sent." };
+    });
   }
 
   const [employees, day] = await Promise.all([

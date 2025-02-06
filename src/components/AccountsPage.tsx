@@ -1,7 +1,8 @@
 "use client";
 
+import { useActionResult } from "@/hooks/useActionResult";
 import { canActorModifyAccount } from "@/utils/account";
-import { StringifyValues } from "@/utils/types";
+import { ActionResult, StringifyValues } from "@/utils/types";
 import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
 import { Account, AccountType } from "@prisma/client";
@@ -15,7 +16,7 @@ interface Props {
   actor: Account;
   accounts: Account[];
   accountIdToUsername: Record<string, string>;
-  upsertAccountAction: (account: StringifyValues<Account>) => Promise<void>;
+  upsertAccountAction: (account: StringifyValues<Account>) => Promise<ActionResult>;
 }
 
 export const AccountsPage = ({
@@ -30,6 +31,7 @@ export const AccountsPage = ({
   const total = Math.ceil(accounts.length / pageSize);
 
   const modals = useModals();
+  const actionResult = useActionResult();
   const pagination = usePagination({
     total,
   });
@@ -118,11 +120,7 @@ export const AccountsPage = ({
                   phoneNumber: props.row.original.phoneNumber,
                   accountType: props.row.original.accountType.toString(),
                 },
-                onSubmit: async (data) => {
-                  await upsertAccountAction(data);
-
-                  modals.closeAll();
-                },
+                onSubmit: async (data) => actionResult(await upsertAccountAction(data)),
                 children: formChildren,
               })
             }
@@ -149,10 +147,7 @@ export const AccountsPage = ({
                 phoneNumber: "",
                 accountType: "",
               },
-              onSubmit: (data) => {
-                upsertAccountAction(data);
-                modals.closeAll();
-              },
+              onSubmit: async (data) => actionResult(await upsertAccountAction(data)),
               children: formChildren,
             })
           }

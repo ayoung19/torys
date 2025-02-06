@@ -1,8 +1,9 @@
 "use client";
 
+import { useActionResult } from "@/hooks/useActionResult";
 import { centsToDollarString, dollarStringToCentsString } from "@/utils/currency";
 import { currentTimesheetId } from "@/utils/date";
-import { StringifyValues } from "@/utils/types";
+import { ActionResult, StringifyValues } from "@/utils/types";
 import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
 import { Employee } from "@prisma/client";
@@ -46,7 +47,7 @@ const formChildren = ({ Field }: FormRenderContext<StringifyValues<Employee>>) =
 
 interface Props {
   employees: Employee[];
-  upsertAction: (employee: StringifyValues<Employee>) => Promise<void>;
+  upsertAction: (employee: StringifyValues<Employee>) => Promise<ActionResult>;
 }
 
 export const EmployeesPage = ({ employees, upsertAction }: Props) => {
@@ -54,22 +55,22 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
   const total = Math.ceil(employees.length / pageSize);
 
   const modals = useModals();
+  const actionResult = useActionResult();
   const pagination = usePagination({
     total,
   });
 
-  const formOnSubmit = async (data: StringifyValues<Employee>) => {
-    await upsertAction({
-      ...data,
-      ratePrivateCentsPerHour: dollarStringToCentsString(data.ratePrivateCentsPerHour),
-      rateDavisBaconCentsPerHour: dollarStringToCentsString(data.rateDavisBaconCentsPerHour),
-      rateDavisBaconOvertimeCentsPerHour: dollarStringToCentsString(
-        data.rateDavisBaconOvertimeCentsPerHour,
-      ),
-    });
-
-    modals.closeAll();
-  };
+  const formOnSubmit = async (data: StringifyValues<Employee>) =>
+    actionResult(
+      await upsertAction({
+        ...data,
+        ratePrivateCentsPerHour: dollarStringToCentsString(data.ratePrivateCentsPerHour),
+        rateDavisBaconCentsPerHour: dollarStringToCentsString(data.rateDavisBaconCentsPerHour),
+        rateDavisBaconOvertimeCentsPerHour: dollarStringToCentsString(
+          data.rateDavisBaconOvertimeCentsPerHour,
+        ),
+      }),
+    );
 
   const columns = [
     columnHelper.accessor("isActive", {
