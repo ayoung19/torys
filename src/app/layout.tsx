@@ -1,5 +1,6 @@
 import { SmartNavbar } from "@/components/SmartNavbar";
 import prisma from "@/db";
+import { theme } from "@/utils/theme";
 import { Container } from "@chakra-ui/react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TZDate } from "@date-fns/tz";
@@ -8,6 +9,7 @@ import { endOfWeek, format } from "date-fns";
 import type { Metadata } from "next";
 import Link from "next/link";
 import NextTopLoader from "nextjs-toploader";
+import { fonts } from "./fonts";
 
 export const dynamic = "force-dynamic";
 
@@ -95,10 +97,10 @@ export default async function RootLayout({
 
   return (
     <ClerkProvider>
-      <html lang="en" data-theme="light">
+      <html lang="en" data-theme="light" className={fonts.inter.variable}>
         <body>
           <NextTopLoader color="#8952e0" height={2} showSpinner={false} shadow={false} />
-          <SaasProvider linkComponent={Link}>
+          <SaasProvider linkComponent={Link} theme={theme}>
             <ModalsProvider>
               <AppShell navbar={<SmartNavbar />}>
                 <Container maxW="container.xl" pt="4">
