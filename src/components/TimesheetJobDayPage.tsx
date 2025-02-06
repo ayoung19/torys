@@ -416,17 +416,17 @@ export const TimesheetJobDayPage = ({
         <Divider />
         <CardBody>
           <PropertyList>
-            <Property alignItems="start" mb="4">
+            <Property alignItems="start">
               <PropertyLabel p={0}>Description</PropertyLabel>
               <PropertyValue>{day.description}</PropertyValue>
             </Property>
-            <Property>
+            {/* TODO: Job completion status. */}
+            {/* <Property>
               <PropertyLabel p={0}>Status</PropertyLabel>
               <PropertyValue>
-                {/* TODO: Job completion status. */}
                 <Badge colorScheme="orange">In Progress</Badge>
               </PropertyValue>
-            </Property>
+            </Property> */}
           </PropertyList>
         </CardBody>
       </Card>

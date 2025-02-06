@@ -206,6 +206,35 @@ export default async function Page({
         },
       });
 
+      // TODO: Make this trigger for foreman only.
+
+      // Automatically approve entries if employee didn't work more than 8 hours for the day.
+      const employeeEntries = await prisma.entry.findMany({
+        where: {
+          timesheetId,
+          dayId: parseInt(dayId),
+          employeeId: entry.employeeId,
+        },
+      });
+
+      await prisma.entry.updateMany({
+        where: {
+          timesheetId,
+          dayId: parseInt(dayId),
+          employeeId: entry.employeeId,
+          entryId: {
+            in: employeeEntries.map((entry) => entry.entryId),
+          },
+        },
+        data: {
+          isApproved:
+            employeeEntries.reduce(
+              (acc, curr) => acc + curr.timeOutSeconds - curr.timeInSeconds - curr.lunchSeconds,
+              0,
+            ) <= 28800,
+        },
+      });
+
       return null;
     });
   }

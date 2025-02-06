@@ -2,7 +2,7 @@
 
 import { Heading } from "@chakra-ui/react";
 import { UserButton } from "@clerk/nextjs";
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarLink } from "@saas-ui/react";
+import { Link, Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarLink } from "@saas-ui/react";
 import { usePathname } from "next/navigation";
 
 export const SmartNavbar = () => {
@@ -11,10 +11,15 @@ export const SmartNavbar = () => {
   return (
     <Navbar borderBottomWidth="1px">
       <NavbarBrand>
-        <Heading>Tory&apos;s Timesheet</Heading>
+        <Link href="/">
+          <Heading size="md">Tory&apos;s Timesheet</Heading>
+        </Link>
       </NavbarBrand>
       <NavbarContent>
         <NavbarItem>
+          <NavbarLink isActive={pathname.includes("/dashboard")} href="/dashboard">
+            Dashboard
+          </NavbarLink>
           <NavbarLink isActive={pathname.includes("/employees")} href="/employees">
             Employees
           </NavbarLink>
