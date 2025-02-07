@@ -267,6 +267,7 @@ export const TimesheetJobDayPage = ({
                           <Badge colorScheme="green">Confirmed</Badge>
                         ))
                         .exhaustive()}
+                      {/* TODO: Add badge for approval status. */}
                     </Stack>
                     <Text
                       fontSize="lg"

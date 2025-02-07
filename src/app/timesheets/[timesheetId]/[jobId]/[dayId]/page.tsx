@@ -187,8 +187,6 @@ export default async function Page({
         return { status: "error", message: "forbidden" };
       }
 
-      // TODO: Set isValid: false for certain conditions.
-
       await prisma.entry.update({
         where: {
           entryPrimaryKey: {
@@ -234,6 +232,23 @@ export default async function Page({
             ) <= 28800,
         },
       });
+
+      // If entry is outside Monday-Friday 7am-4pm then deny the entry.
+      if (dayId === "0" || dayId === "6" || timeInSeconds < 25200 || timeOutSeconds > 57600) {
+        await prisma.entry.update({
+          where: {
+            entryPrimaryKey: {
+              timesheetId,
+              jobId: jobId,
+              dayId: parseInt(dayId),
+              entryId: entry.entryId,
+            },
+          },
+          data: {
+            isApproved: false,
+          },
+        });
+      }
 
       return null;
     });
