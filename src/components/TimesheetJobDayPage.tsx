@@ -193,7 +193,7 @@ export const TimesheetJobDayPage = ({
                 ),
               )
               .map((entry) => (
-                <Stack spacing={0} p="4">
+                <Stack key={entry.entryId} spacing={0} p="4">
                   <Stack direction="row" align="start" justify="space-between">
                     <Stack direction="row" align="center" spacing="2">
                       <Button

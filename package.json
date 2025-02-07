@@ -24,6 +24,7 @@
     "@saas-ui/react": "^2.11.2",
     "@tanstack/react-table": "^8.20.5",
     "date-fns": "^4.1.0",
+    "exceljs": "^4.4.0",
     "framer-motion": "^11.13.5",
     "fuzzysort": "^3.1.0",
     "next": "14.2.8",

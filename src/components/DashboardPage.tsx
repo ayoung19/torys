@@ -15,12 +15,14 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { TZDate } from "@date-fns/tz";
-import { Employee, Entry, Job } from "@prisma/client";
+import { Employee, Entry, Job, Timesheet } from "@prisma/client";
 import { addDays, format, parse, startOfWeek } from "date-fns";
 import { useCallback } from "react";
+import { TimesheetsDataTable } from "./TimesheetsDataTable";
 
 interface Props {
   deniedEntries: Entry[];
+  timesheets: Timesheet[];
   employees: Employee[];
   jobs: Job[];
   approveAction: (jobId: string, dayId: string, entryId: string) => Promise<ActionResult>;
@@ -29,6 +31,7 @@ interface Props {
 
 export const DashboardPage = ({
   deniedEntries,
+  timesheets,
   employees,
   jobs,
   approveAction,
@@ -49,7 +52,7 @@ export const DashboardPage = ({
   return (
     <Stack>
       {deniedEntries.length > 0 && (
-        <Card>
+        <Card mb="4">
           <CardHeader py={3}>
             <Flex justify="space-between" align="center">
               <Text fontSize="lg" fontWeight="bold">
@@ -80,7 +83,7 @@ export const DashboardPage = ({
                   ),
                 )
                 .map((entry) => (
-                  <Stack spacing={0} p="4">
+                  <Stack key={entry.entryId} spacing={0} p="4">
                     <Stack direction="row" align="start" justify="space-between">
                       <Text fontSize="lg" fontWeight="bold">
                         {
@@ -162,6 +165,7 @@ export const DashboardPage = ({
           </CardBody>
         </Card>
       )}
+      <TimesheetsDataTable timesheets={timesheets} />
     </Stack>
   );
 };

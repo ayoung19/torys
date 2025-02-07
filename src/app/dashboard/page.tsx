@@ -71,13 +71,14 @@ export default async function Page() {
     return null;
   }
 
-  const [deniedEntries, employees, jobs] = await Promise.all([
+  const [deniedEntries, timesheets, employees, jobs] = await Promise.all([
     prisma.entry.findMany({
       where: {
         timesheetId: currentTimesheetId(),
         isApproved: false,
       },
     }),
+    prisma.timesheet.findMany(),
     prisma.employee.findMany({
       where: {
         timesheetId: currentTimesheetId(),
@@ -93,6 +94,7 @@ export default async function Page() {
   return (
     <DashboardPage
       deniedEntries={deniedEntries}
+      timesheets={timesheets}
       employees={employees}
       jobs={jobs}
       approveAction={approveAction}
