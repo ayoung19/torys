@@ -4,11 +4,17 @@ import { useActionResult } from "@/hooks/useActionResult";
 import { centsToDollarString, dollarStringToCentsString } from "@/utils/currency";
 import { currentTimesheetId } from "@/utils/date";
 import { ActionResult, StringifyValues } from "@/utils/types";
-import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
+import { Badge, Button, Card, CardFooter, Divider, Stack, Text } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
 import { Employee } from "@prisma/client";
-import { DataTable, FormLayout, FormRenderContext, useModals } from "@saas-ui/react";
-import { createColumnHelper, getPaginationRowModel } from "@tanstack/react-table";
+import { DataTable, FormLayout, FormRenderContext, SearchInput, useModals } from "@saas-ui/react";
+import {
+  createColumnHelper,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  Table,
+} from "@tanstack/react-table";
+import { useEffect, useRef, useState } from "react";
 import { Pagination } from "./Pagination";
 
 const columnHelper = createColumnHelper<Employee>();
@@ -51,14 +57,23 @@ interface Props {
 }
 
 export const EmployeesPage = ({ employees, upsertAction }: Props) => {
-  const pageSize = 10;
-  const total = Math.ceil(employees.length / pageSize);
-
   const modals = useModals();
   const actionResult = useActionResult();
+
+  const [search, setSearch] = useState("");
+  const [length, setLength] = useState(employees.length);
+
+  const pageSize = 10;
+  const total = Math.ceil(length / pageSize);
   const pagination = usePagination({
     total,
   });
+
+  useEffect(() => {
+    pagination.first();
+  }, [length]);
+
+  const tableRef = useRef<Table<Employee>>(null);
 
   const formOnSubmit = async (data: StringifyValues<Employee>) =>
     actionResult(
@@ -143,37 +158,55 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
   ];
 
   return (
-    <Stack>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Heading size="md">Employees</Heading>
-        <Button
-          onClick={() =>
-            modals.form({
-              title: "New Employee",
-              defaultValues: {
-                timesheetId: currentTimesheetId(),
-                employeeId: "",
-                isActive: "true",
-                displayId: "",
-                name: "",
-                phoneNumber: "",
-                ratePrivateCentsPerHour: centsToDollarString(0),
-                rateDavisBaconCentsPerHour: centsToDollarString(0),
-                rateDavisBaconOvertimeCentsPerHour: centsToDollarString(0),
-              },
-              onSubmit: formOnSubmit,
-              children: formChildren,
-            })
-          }
-        >
-          New
-        </Button>
+    <Stack spacing="4">
+      <Stack direction="row" justify="space-between" align="center">
+        <Stack direction="row" align="center">
+          <Text fontSize="xl" fontWeight="bold">
+            All Employees
+          </Text>
+          <Text fontSize="xl" fontWeight="bold" color="gray.400">
+            {employees.length}
+          </Text>
+        </Stack>
+        <Stack direction="row" align="center">
+          <SearchInput
+            placeholder="Search"
+            size="sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onReset={() => setSearch("")}
+          />
+          <Button
+            onClick={() =>
+              modals.form({
+                title: "New Employee",
+                defaultValues: {
+                  timesheetId: currentTimesheetId(),
+                  employeeId: "",
+                  isActive: "true",
+                  displayId: "",
+                  name: "",
+                  phoneNumber: "",
+                  ratePrivateCentsPerHour: centsToDollarString(0),
+                  rateDavisBaconCentsPerHour: centsToDollarString(0),
+                  rateDavisBaconOvertimeCentsPerHour: centsToDollarString(0),
+                },
+                onSubmit: formOnSubmit,
+                children: formChildren,
+              })
+            }
+          >
+            New
+          </Button>
+        </Stack>
       </Stack>
       <Card>
         <DataTable
+          instanceRef={tableRef}
           columns={columns}
           data={employees}
           getPaginationRowModel={getPaginationRowModel()}
+          getFilteredRowModel={getFilteredRowModel()}
           initialState={{
             sorting: [
               { id: "isActive", desc: true },
@@ -185,7 +218,9 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
               pageIndex: pagination.active - 1,
               pageSize,
             },
+            globalFilter: search,
           }}
+          onStateChange={() => setLength(tableRef.current?.getFilteredRowModel().rows.length || 0)}
           isSortable={true}
         />
         <Divider />

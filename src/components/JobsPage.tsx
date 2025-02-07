@@ -4,11 +4,17 @@ import { useActionResult } from "@/hooks/useActionResult";
 import { centsToDollarString, dollarStringToCentsString } from "@/utils/currency";
 import { currentTimesheetId } from "@/utils/date";
 import { ActionResult, StringifyValues } from "@/utils/types";
-import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
+import { Badge, Button, Card, CardFooter, Divider, Stack, Text } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
 import { Job, JobType } from "@prisma/client";
-import { DataTable, FormLayout, FormRenderContext, useModals } from "@saas-ui/react";
-import { createColumnHelper, getPaginationRowModel } from "@tanstack/react-table";
+import { DataTable, FormLayout, FormRenderContext, SearchInput, useModals } from "@saas-ui/react";
+import {
+  createColumnHelper,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  Table,
+} from "@tanstack/react-table";
+import { useEffect, useRef, useState } from "react";
 import { Pagination } from "./Pagination";
 
 const columnHelper = createColumnHelper<Job>();
@@ -48,14 +54,23 @@ interface Props {
 }
 
 export const JobsPage = ({ jobs, upsertAction }: Props) => {
-  const pageSize = 10;
-  const total = Math.ceil(jobs.length / pageSize);
-
   const modals = useModals();
   const actionResult = useActionResult();
+
+  const [search, setSearch] = useState("");
+  const [length, setLength] = useState(jobs.length);
+
+  const pageSize = 10;
+  const total = Math.ceil(length / pageSize);
   const pagination = usePagination({
     total,
   });
+
+  useEffect(() => {
+    pagination.first();
+  }, [length]);
+
+  const tableRef = useRef<Table<Job>>(null);
 
   const formOnSubmit = async (data: StringifyValues<Job>) =>
     actionResult(
@@ -135,35 +150,53 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
   ];
 
   return (
-    <Stack>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Heading size="md">Jobs</Heading>
-        <Button
-          onClick={() =>
-            modals.form({
-              title: "New Job",
-              defaultValues: {
-                timesheetId: currentTimesheetId(),
-                jobId: "",
-                isActive: "true",
-                name: "",
-                budgetOriginalCents: centsToDollarString(0),
-                budgetCurrentCents: centsToDollarString(0),
-                jobType: JobType.PRIVATE.toString(),
-              },
-              onSubmit: formOnSubmit,
-              children: formChildren,
-            })
-          }
-        >
-          New
-        </Button>
+    <Stack spacing="4">
+      <Stack direction="row" justify="space-between" align="center">
+        <Stack direction="row" align="center">
+          <Text fontSize="xl" fontWeight="bold">
+            All Jobs
+          </Text>
+          <Text fontSize="xl" fontWeight="bold" color="gray.400">
+            {jobs.length}
+          </Text>
+        </Stack>
+        <Stack direction="row" align="center">
+          <SearchInput
+            placeholder="Search"
+            size="sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onReset={() => setSearch("")}
+          />
+          <Button
+            onClick={() =>
+              modals.form({
+                title: "New Job",
+                defaultValues: {
+                  timesheetId: currentTimesheetId(),
+                  jobId: "",
+                  isActive: "true",
+                  name: "",
+                  budgetOriginalCents: centsToDollarString(0),
+                  budgetCurrentCents: centsToDollarString(0),
+                  jobType: JobType.PRIVATE.toString(),
+                },
+                onSubmit: formOnSubmit,
+                children: formChildren,
+              })
+            }
+          >
+            New
+          </Button>
+        </Stack>
       </Stack>
       <Card>
         <DataTable
+          instanceRef={tableRef}
           columns={columns}
           data={jobs}
           getPaginationRowModel={getPaginationRowModel()}
+          getFilteredRowModel={getFilteredRowModel()}
           initialState={{
             sorting: [
               { id: "isActive", desc: true },
@@ -175,7 +208,9 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
               pageIndex: pagination.active - 1,
               pageSize,
             },
+            globalFilter: search,
           }}
+          onStateChange={() => setLength(tableRef.current?.getFilteredRowModel().rows.length || 0)}
           isSortable={true}
         />
         <Divider />

@@ -3,11 +3,17 @@
 import { useActionResult } from "@/hooks/useActionResult";
 import { canActorModifyAccount } from "@/utils/account";
 import { ActionResult, StringifyValues } from "@/utils/types";
-import { Badge, Button, Card, CardFooter, Divider, Heading, Stack } from "@chakra-ui/react";
+import { Badge, Button, Card, CardFooter, Divider, Stack, Text } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
 import { Account, AccountType } from "@prisma/client";
-import { DataTable, FormLayout, FormRenderContext, useModals } from "@saas-ui/react";
-import { createColumnHelper, getPaginationRowModel } from "@tanstack/react-table";
+import { DataTable, FormLayout, FormRenderContext, SearchInput, useModals } from "@saas-ui/react";
+import {
+  createColumnHelper,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  Table,
+} from "@tanstack/react-table";
+import { useEffect, useRef, useState } from "react";
 import { Pagination } from "./Pagination";
 
 const columnHelper = createColumnHelper<Account>();
@@ -27,14 +33,23 @@ export const AccountsPage = ({
 }: Props) => {
   const accountIds = accounts.map(({ accountId }) => accountId);
 
-  const pageSize = 10;
-  const total = Math.ceil(accounts.length / pageSize);
-
   const modals = useModals();
   const actionResult = useActionResult();
+
+  const [search, setSearch] = useState("");
+  const [length, setLength] = useState(accounts.length);
+
+  const pageSize = 10;
+  const total = Math.ceil(length / pageSize);
   const pagination = usePagination({
     total,
   });
+
+  useEffect(() => {
+    pagination.first();
+  }, [length]);
+
+  const tableRef = useRef<Table<Account>>(null);
 
   const formChildren = ({ Field, formState }: FormRenderContext<StringifyValues<Account>>) => (
     <FormLayout>
@@ -134,32 +149,50 @@ export const AccountsPage = ({
   ];
 
   return (
-    <Stack>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Heading size="md">Accounts</Heading>
-        <Button
-          onClick={() =>
-            modals.form({
-              title: "New Account",
-              defaultValues: {
-                accountId: "",
-                isActive: "true",
-                phoneNumber: "",
-                accountType: "",
-              },
-              onSubmit: async (data) => actionResult(await upsertAccountAction(data)),
-              children: formChildren,
-            })
-          }
-        >
-          New
-        </Button>
+    <Stack spacing="4">
+      <Stack direction="row" justify="space-between" align="center">
+        <Stack direction="row" align="center">
+          <Text fontSize="xl" fontWeight="bold">
+            All Accounts
+          </Text>
+          <Text fontSize="xl" fontWeight="bold" color="gray.400">
+            {accounts.length}
+          </Text>
+        </Stack>
+        <Stack direction="row" align="center">
+          <SearchInput
+            placeholder="Search"
+            size="sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onReset={() => setSearch("")}
+          />
+          <Button
+            onClick={() =>
+              modals.form({
+                title: "New Account",
+                defaultValues: {
+                  accountId: "",
+                  isActive: "true",
+                  phoneNumber: "",
+                  accountType: "",
+                },
+                onSubmit: async (data) => actionResult(await upsertAccountAction(data)),
+                children: formChildren,
+              })
+            }
+          >
+            New
+          </Button>
+        </Stack>
       </Stack>
       <Card>
         <DataTable
+          instanceRef={tableRef}
           columns={columns}
           data={accounts}
           getPaginationRowModel={getPaginationRowModel()}
+          getFilteredRowModel={getFilteredRowModel()}
           initialState={{
             sorting: [{ id: "isActive", desc: true }],
           }}
@@ -168,7 +201,9 @@ export const AccountsPage = ({
               pageIndex: pagination.active - 1,
               pageSize,
             },
+            globalFilter: search,
           }}
+          onStateChange={() => setLength(tableRef.current?.getFilteredRowModel().rows.length || 0)}
           isSortable={true}
         />
         <Divider />

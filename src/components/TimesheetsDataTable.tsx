@@ -10,7 +10,7 @@ import {
   getPaginationRowModel,
   Table,
 } from "@tanstack/react-table";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pagination } from "./Pagination";
 
 const columnHelper = createColumnHelper<Timesheet>();
@@ -30,6 +30,10 @@ export const TimesheetsDataTable = ({ timesheets }: Props) => {
   const pagination = usePagination({
     total,
   });
+
+  useEffect(() => {
+    pagination.first();
+  }, [length]);
 
   const columns = [
     columnHelper.accessor("timesheetId", {
@@ -99,10 +103,7 @@ export const TimesheetsDataTable = ({ timesheets }: Props) => {
             },
             globalFilter: search,
           }}
-          onStateChange={() => {
-            setLength(tableRef.current?.getFilteredRowModel().rows.length || 0);
-            pagination.first();
-          }}
+          onStateChange={() => setLength(tableRef.current?.getFilteredRowModel().rows.length || 0)}
           isSortable={true}
         />
         <Divider />
