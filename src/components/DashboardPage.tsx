@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { TZDate } from "@date-fns/tz";
 import { Employee, Entry, Job } from "@prisma/client";
-import { format } from "date-fns";
+import { addDays, format, parse, startOfWeek } from "date-fns";
 import { useCallback } from "react";
 
 interface Props {
@@ -59,7 +59,7 @@ export const DashboardPage = ({
           </CardHeader>
           <CardBody p={0}>
             <Divider />
-            <SimpleGrid columns={4} px={4} py={1} bgColor="gray.50">
+            <SimpleGrid columns={3} px={4} py={1} bgColor="gray.50">
               <Text fontSize="lg" fontWeight="bold">
                 In
               </Text>
@@ -69,7 +69,6 @@ export const DashboardPage = ({
               <Text fontSize="lg" fontWeight="bold">
                 Hours
               </Text>
-              <Text fontSize="lg" fontWeight="bold"></Text>
             </SimpleGrid>
             <Divider />
             <Stack divider={<Divider />} spacing={0}>
@@ -81,19 +80,55 @@ export const DashboardPage = ({
                   ),
                 )
                 .map((entry) => (
-                  <SimpleGrid key={entry.entryId} columns={4} p={4}>
-                    <Stack justify="end" align="start" spacing={0}>
-                      <Stack direction="row" align="center" spacing="2">
-                        <Text fontSize="lg" fontWeight="bold">
-                          {
-                            employees.find((employee) => employee.employeeId === entry.employeeId)
-                              ?.name
+                  <Stack spacing={0} p="4">
+                    <Stack direction="row" align="start" justify="space-between">
+                      <Text fontSize="lg" fontWeight="bold">
+                        {
+                          employees.find((employee) => employee.employeeId === entry.employeeId)
+                            ?.name
+                        }
+                      </Text>
+                      <Stack direction="row" justify="end" align="center">
+                        <Button
+                          size="xs"
+                          colorScheme="green"
+                          onClick={async () =>
+                            actionResult(
+                              await approveAction(
+                                entry.jobId,
+                                entry.dayId.toString(),
+                                entry.entryId,
+                              ),
+                            )
                           }
-                        </Text>
-                        <Text fontSize="lg" fontStyle="italic">
-                          {getJobById(entry.jobId)?.name}
-                        </Text>
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="xs"
+                          colorScheme="red"
+                          onClick={async () =>
+                            actionResult(
+                              await denyAction(entry.jobId, entry.dayId.toString(), entry.entryId),
+                            )
+                          }
+                        >
+                          Delete
+                        </Button>
                       </Stack>
+                    </Stack>
+                    <Text fontSize="lg" fontStyle="italic">
+                      {getJobById(entry.jobId)?.name}
+                      <> </>-<> </>
+                      {format(
+                        addDays(
+                          startOfWeek(parse(entry.timesheetId, "yyyy-MM-dd", new Date())),
+                          entry.dayId,
+                        ),
+                        "yyyy-MM-dd",
+                      )}
+                    </Text>
+                    <SimpleGrid columns={3}>
                       <Text
                         fontSize="lg"
                         opacity={
@@ -102,8 +137,6 @@ export const DashboardPage = ({
                       >
                         {format(TZDate.tz("+00:00", entry.timeInSeconds * 1000), "hh:mmaaa")}
                       </Text>
-                    </Stack>
-                    <Stack justify="end" align="start" spacing={0}>
                       <Text
                         fontSize="lg"
                         opacity={
@@ -112,8 +145,6 @@ export const DashboardPage = ({
                       >
                         {format(TZDate.tz("+00:00", entry.timeOutSeconds * 1000), "hh:mmaaa")}
                       </Text>
-                    </Stack>
-                    <Stack justify="end" align="start" spacing={0}>
                       <Text
                         fontSize="lg"
                         opacity={
@@ -124,30 +155,8 @@ export const DashboardPage = ({
                           entry.timeOutSeconds - entry.timeInSeconds - entry.lunchSeconds,
                         )}
                       </Text>
-                    </Stack>
-                    <Stack direction="row" justify="end" align="center">
-                      <Button
-                        colorScheme="green"
-                        onClick={async () =>
-                          actionResult(
-                            await approveAction(entry.jobId, entry.dayId.toString(), entry.entryId),
-                          )
-                        }
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        colorScheme="red"
-                        onClick={async () =>
-                          actionResult(
-                            await denyAction(entry.jobId, entry.dayId.toString(), entry.entryId),
-                          )
-                        }
-                      >
-                        Deny
-                      </Button>
-                    </Stack>
-                  </SimpleGrid>
+                    </SimpleGrid>
+                  </Stack>
                 ))}
             </Stack>
           </CardBody>

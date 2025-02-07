@@ -172,7 +172,7 @@ export const TimesheetJobDayPage = ({
         </CardHeader>
         <CardBody p={0}>
           <Divider />
-          <SimpleGrid columns={4} px={4} py={1} bgColor="gray.50">
+          <SimpleGrid columns={3} px={4} py={1} bgColor="gray.50">
             <Text fontSize="lg" fontWeight="bold">
               In
             </Text>
@@ -182,7 +182,6 @@ export const TimesheetJobDayPage = ({
             <Text fontSize="lg" fontWeight="bold">
               Hours
             </Text>
-            <Text fontSize="lg" fontWeight="bold"></Text>
           </SimpleGrid>
           <Divider />
           <Stack divider={<Divider />} spacing={0}>
@@ -194,8 +193,8 @@ export const TimesheetJobDayPage = ({
                 ),
               )
               .map((entry) => (
-                <SimpleGrid key={entry.entryId} columns={4} p={4}>
-                  <Stack justify="end" align="start" spacing={0}>
+                <Stack spacing={0} p="4">
+                  <Stack direction="row" align="start" justify="space-between">
                     <Stack direction="row" align="center" spacing="2">
                       <Button
                         colorScheme="blue"
@@ -269,6 +268,17 @@ export const TimesheetJobDayPage = ({
                         .exhaustive()}
                       {/* TODO: Add badge for approval status. */}
                     </Stack>
+                    <Stack direction="row" justify="end" align="center">
+                      <IconButton
+                        aria-label="Delete entry"
+                        colorScheme="red"
+                        size="xs"
+                        icon={<FiTrash />}
+                        onClick={async () => actionResult(await deleteEntry(entry.entryId))}
+                      />
+                    </Stack>
+                  </Stack>
+                  <SimpleGrid columns={3}>
                     <Text
                       fontSize="lg"
                       opacity={
@@ -277,8 +287,6 @@ export const TimesheetJobDayPage = ({
                     >
                       {format(TZDate.tz("+00:00", entry.timeInSeconds * 1000), "hh:mmaaa")}
                     </Text>
-                  </Stack>
-                  <Stack justify="end" align="start" spacing={0}>
                     <Text
                       fontSize="lg"
                       opacity={
@@ -287,8 +295,6 @@ export const TimesheetJobDayPage = ({
                     >
                       {format(TZDate.tz("+00:00", entry.timeOutSeconds * 1000), "hh:mmaaa")}
                     </Text>
-                  </Stack>
-                  <Stack justify="end" align="start" spacing={0}>
                     <Text
                       fontSize="lg"
                       opacity={
@@ -299,17 +305,8 @@ export const TimesheetJobDayPage = ({
                         entry.timeOutSeconds - entry.timeInSeconds - entry.lunchSeconds,
                       )}
                     </Text>
-                  </Stack>
-                  <Stack align="end" spacing={0}>
-                    <IconButton
-                      aria-label="Delete entry"
-                      colorScheme="red"
-                      size="xs"
-                      icon={<FiTrash />}
-                      onClick={async () => actionResult(await deleteEntry(entry.entryId))}
-                    />
-                  </Stack>
-                </SimpleGrid>
+                  </SimpleGrid>
+                </Stack>
               ))}
             <Stack px={4} py={3} spacing={3}>
               <Flex justify="space-between">
