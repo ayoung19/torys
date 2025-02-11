@@ -3,18 +3,20 @@ import { AccountType, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const devAccount = await prisma.account.upsert({
-    where: { accountId: "user_2lhyc7EmEuvzN8xWoE0TVWIcB1t" },
-    update: {},
-    create: {
-      accountId: "user_2lhyc7EmEuvzN8xWoE0TVWIcB1t",
-      isActive: true,
-      phoneNumber: "",
-      accountType: AccountType.DEV,
-    },
-  });
+  if (process.env.DEV_ACCOUNT_ID) {
+    const devAccount = await prisma.account.upsert({
+      where: { accountId: process.env.DEV_ACCOUNT_ID },
+      update: {},
+      create: {
+        accountId: process.env.DEV_ACCOUNT_ID,
+        isActive: true,
+        phoneNumber: "",
+        accountType: AccountType.DEV,
+      },
+    });
 
-  console.log(devAccount);
+    console.log(devAccount);
+  }
 }
 
 main()
