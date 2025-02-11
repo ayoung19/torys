@@ -70,6 +70,7 @@ export async function GET(
       Sat: number;
       Hours: number;
       "Paid Out": number;
+      rowColor: string;
     }>[] = [];
 
     employee.entries.forEach((entry) => {
@@ -91,6 +92,11 @@ export async function GET(
           [dayIdToKey(entry.dayId)]:
             entry.timeOutSeconds - entry.timeInSeconds - entry.lunchSeconds,
           Hours: entry.timeOutSeconds - entry.timeInSeconds - entry.lunchSeconds,
+          rowColor: match(entry.day.job.jobType)
+            .with(JobType.PRIVATE, () => undefined)
+            .with(JobType.STATE, () => "ff34a853")
+            .with(JobType.FEDERAL, () => "ff34a853")
+            .exhaustive(),
         });
       } else {
         rows[i][dayIdToKey(entry.dayId)] =
@@ -113,7 +119,21 @@ export async function GET(
       row.Rate = (row.Rate || 0) / 100;
     }
 
-    sheet.addRows(rows);
+    rows.forEach((row) => {
+      const addedRow = sheet.addRow(
+        Object.fromEntries(Object.entries(row).map(([key, value]) => [key, value || ""])),
+      );
+
+      addedRow.eachCell((cell) => {
+        if (row.rowColor) {
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: row.rowColor },
+          };
+        }
+      });
+    });
 
     if (rows.length > 0) {
       sheet.addRow({
