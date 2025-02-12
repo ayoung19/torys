@@ -33,6 +33,7 @@ const formChildren = ({ Field }: FormRenderContext<StringifyValues<Employee>>) =
     <Field name="displayId" label="ID" type="text" isRequired={true} rules={{ required: true }} />
     <Field name="name" label="Name" type="text" isRequired={true} rules={{ required: true }} />
     <Field name="phoneNumber" label="Phone Number" type="text" />
+    <Field name="fringeCode" label="Fringe Code" type="text" />
     <Field name="ratePrivateCentsPerHour" label="Private" type="number" step={0.01} min={0} />
     <Field
       name="rateDavisBaconCentsPerHour"
@@ -106,6 +107,9 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
     columnHelper.accessor("phoneNumber", {
       header: "Phone Number",
     }),
+    columnHelper.accessor("fringeCode", {
+      header: "Fringe Code",
+    }),
     columnHelper.accessor("ratePrivateCentsPerHour", {
       header: "Private",
       cell: (props) => centsToDollarString(props.getValue()),
@@ -135,6 +139,7 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
                   displayId: props.row.original.displayId,
                   name: props.row.original.name,
                   phoneNumber: props.row.original.phoneNumber,
+                  fringeCode: props.row.original.fringeCode,
                   ratePrivateCentsPerHour: centsToDollarString(
                     props.row.original.ratePrivateCentsPerHour,
                   ),
@@ -187,6 +192,7 @@ export const EmployeesPage = ({ employees, upsertAction }: Props) => {
                   displayId: "",
                   name: "",
                   phoneNumber: "",
+                  fringeCode: "",
                   ratePrivateCentsPerHour: centsToDollarString(0),
                   rateDavisBaconCentsPerHour: centsToDollarString(0),
                   rateDavisBaconOvertimeCentsPerHour: centsToDollarString(0),

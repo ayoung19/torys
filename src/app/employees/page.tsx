@@ -15,6 +15,7 @@ const employeeSchema = z.object({
   displayId: z.string(),
   name: z.string(),
   phoneNumber: z.string(),
+  fringeCode: z.string(),
   ratePrivateCentsPerHour: z.coerce.number().int(),
   rateDavisBaconCentsPerHour: z.coerce.number().int(),
   rateDavisBaconOvertimeCentsPerHour: z.coerce.number().int(),
