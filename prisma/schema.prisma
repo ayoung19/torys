@@ -47,6 +47,7 @@ model Employee {
   displayId String
   name String
   phoneNumber String
+  fringeCode String? @default("")
   ratePrivateCentsPerHour Int
   rateDavisBaconCentsPerHour Int
   rateDavisBaconOvertimeCentsPerHour Int
