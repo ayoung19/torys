@@ -7,6 +7,7 @@ import { AccountType, Day, Entry, EntryConfirmationStatus } from "@prisma/client
 import { addDays, format, getDay, parse, startOfWeek } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+import { match } from "ts-pattern";
 import twilio from "twilio";
 import { z } from "zod";
 
@@ -277,19 +278,35 @@ export default async function Page({
     "use server";
 
     return await handleEntry(timesheetId, jobId, dayId, async () => {
-      if (parseInt(dayId) === 0) {
-        // TODO: Allow this.
-        return { status: "error", message: "forbidden" };
-      }
-
-      const [previousDay, existingEntries] = await Promise.all([
-        prisma.day.findUniqueOrThrow({
-          where: {
-            dayPrimaryKey: {
-              timesheetId,
-              jobId,
-              dayId: parseInt(dayId) - 1,
+      const [previousDays, existingEntries] = await Promise.all([
+        prisma.day.findMany({
+          orderBy: [
+            {
+              timesheetId: "desc",
             },
+            { dayId: "desc" },
+          ],
+          where: {
+            OR: [
+              {
+                timesheetId: {
+                  lt: timesheetId,
+                },
+              },
+              {
+                AND: [
+                  {
+                    timesheetId,
+                  },
+                  {
+                    dayId: {
+                      lt: parseInt(dayId),
+                    },
+                  },
+                ],
+              },
+            ],
+            jobId,
           },
           include: {
             entries: {
@@ -298,6 +315,10 @@ export default async function Page({
               },
             },
           },
+          take: match(dayId)
+            .with("0", () => 2)
+            .with("1", () => 3)
+            .otherwise(() => 1),
         }),
         prisma.entry.findMany({
           where: {
@@ -308,6 +329,12 @@ export default async function Page({
         }),
       ]);
 
+      const previousDay = previousDays.find((day) => day.entries.length > 0);
+
+      if (previousDay === undefined) {
+        return { status: "info", message: "No crew to copy from previous day." };
+      }
+
       const previousDayActiveEmployeeIds = Array.from(
         previousDay.entries.reduce<Set<string>>((acc, curr) => {
           if (curr.employee.isActive) {
@@ -317,10 +344,6 @@ export default async function Page({
           return acc;
         }, new Set()),
       );
-
-      if (previousDayActiveEmployeeIds.length === 0) {
-        return { status: "info", message: "No crew to copy from previous day." };
-      }
 
       await Promise.all([
         prisma.entry.createMany({
