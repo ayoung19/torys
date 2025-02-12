@@ -4,7 +4,7 @@ import { ActionResult, StringifyValues } from "@/utils/types";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { TZDate } from "@date-fns/tz";
 import { AccountType, Day, Entry, EntryConfirmationStatus } from "@prisma/client";
-import { getDay } from "date-fns";
+import { addDays, format, getDay, parse, startOfWeek } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import twilio from "twilio";
@@ -404,6 +404,11 @@ export default async function Page({
         },
         include: {
           employee: true,
+          day: {
+            include: {
+              job: true,
+            },
+          },
         },
       });
 
@@ -432,22 +437,36 @@ export default async function Page({
 
       await Promise.all(
         employeeIds.flatMap((employeeId) => {
-          const phoneNumber = entries.find((entry) => entry.employeeId === employeeId)?.employee
-            .phoneNumber;
-
-          if (phoneNumber) {
-            return client.messages.create({
-              body: JSON.stringify(
-                entries.filter((entry) => entry.employeeId === employeeId),
-                null,
-                2,
-              ),
-              from: "+18082044203",
-              to: `+1${phoneNumber}`,
-            });
-          } else {
+          const employee = entries.find((entry) => entry.employeeId === employeeId)?.employee;
+          JSON.stringify(
+            entries.filter((entry) => entry.employeeId === employeeId),
+            null,
+            2,
+          );
+          if (!employee?.phoneNumber) {
             return [];
           }
+
+          return client.messages.create({
+            body: `Hi, ${employee.name}. We need you to confirm that the following timesheet is correct.
+----
+${entries
+  .filter((entry) => entry.employeeId === employeeId)
+  .toSorted((a, b) => a.timeInSeconds - b.timeInSeconds)
+  .map(
+    (entry) => `${format(
+      addDays(startOfWeek(parse(entry.timesheetId, "yyyy-MM-dd", new Date())), entry.dayId),
+      "E MMM dd",
+    )}
+    ${format(TZDate.tz("+00:00", entry.timeInSeconds * 1000), "hh:mm a")} to ${format(TZDate.tz("+00:00", entry.timeOutSeconds * 1000), "hh:mm a")}
+    (${entry.day.job.name})`,
+  )
+  .join("\n")}
+----
+Respond 'OK' to this text to confirm these times. Contact your foreman if this information is incorrect.`,
+            from: "+18082044203",
+            to: `+1${employee.phoneNumber}`,
+          });
         }),
       );
 
