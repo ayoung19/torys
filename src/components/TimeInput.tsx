@@ -9,14 +9,14 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import { TZDate } from "@date-fns/tz";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useId } from "@mantine/hooks";
 import { format } from "date-fns";
 import fuzzysort from "fuzzysort";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const OPTIONS = [...Array(Math.floor(86400 / 900))]
-  .map((_, i) => i * 900 * 1000)
-  .map((ms) => ({ label: format(TZDate.tz("+00:00", ms), "hh:mmaaa"), value: ms }));
+  .map((_, i) => i * 900)
+  .map((s) => ({ label: format(TZDate.tz("+00:00", s * 1000), "hh:mmaaa"), value: s }));
 
 interface Props {
   label?: string;
@@ -25,9 +25,10 @@ interface Props {
 }
 
 export const TimeInput = ({ label, value, onChange }: Props) => {
+  const id = useId();
+
   const valueToLabel = useCallback(
-    (value: string) =>
-      OPTIONS.find((option) => (option.value / 1000).toString() === value)?.label || value,
+    (value: string) => OPTIONS.find((option) => option.value.toString() === value)?.label || value,
     [],
   );
 
@@ -47,6 +48,7 @@ export const TimeInput = ({ label, value, onChange }: Props) => {
 
       setTimeout(() => {
         inputRef.current?.focus();
+        document.querySelector(`.${id}-${value}`)?.scrollIntoView();
       }, 50);
     }
   }, [opened]);
@@ -69,7 +71,11 @@ export const TimeInput = ({ label, value, onChange }: Props) => {
       </Stack>
       <MenuList maxH="200px" overflowY="auto">
         {options.map(({ label, value }) => (
-          <MenuItem key={value} onClick={() => onChange((value / 1000).toString())}>
+          <MenuItem
+            key={value}
+            className={`${id}-${value}`}
+            onClick={() => onChange(value.toString())}
+          >
             {label}
           </MenuItem>
         ))}

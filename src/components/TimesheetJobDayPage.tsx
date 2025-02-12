@@ -2,7 +2,12 @@
 
 import { useActionResult } from "@/hooks/useActionResult";
 import { currentTimesheetId } from "@/utils/date";
-import { hourStringToSecondsString, secondsToHourString } from "@/utils/time";
+import {
+  DEFAULT_TIME_IN_SECONDS,
+  DEFAULT_TIME_OUT_SECONDS,
+  hourStringToSecondsString,
+  secondsToHourString,
+} from "@/utils/time";
 import { ActionResult, StringifyValues } from "@/utils/types";
 import {
   Alert,
@@ -204,8 +209,16 @@ export const TimesheetJobDayPage = ({
                           modals.form({
                             title: "Edit Crew Member",
                             defaultValues: {
-                              timeInSeconds: entry.timeInSeconds.toString(),
-                              timeOutSeconds: entry.timeOutSeconds.toString(),
+                              timeInSeconds: (entry.timeInSeconds === 0 &&
+                              entry.timeOutSeconds === 0
+                                ? DEFAULT_TIME_IN_SECONDS
+                                : entry.timeInSeconds
+                              ).toString(),
+                              timeOutSeconds: (entry.timeInSeconds === 0 &&
+                              entry.timeOutSeconds === 0
+                                ? DEFAULT_TIME_OUT_SECONDS
+                                : entry.timeOutSeconds
+                              ).toString(),
                               lunchSeconds: secondsToHourString(entry.lunchSeconds),
                             },
                             onSubmit: async (data) =>
@@ -316,8 +329,8 @@ export const TimesheetJobDayPage = ({
                     modals.form({
                       title: "Set Crew Time",
                       defaultValues: {
-                        timeInSeconds: "0",
-                        timeOutSeconds: "0",
+                        timeInSeconds: DEFAULT_TIME_IN_SECONDS.toString(),
+                        timeOutSeconds: DEFAULT_TIME_OUT_SECONDS.toString(),
                         lunchSeconds: secondsToHourString(0),
                       },
                       onSubmit: async (data) => {
