@@ -1,8 +1,7 @@
 import prisma from "@/db";
-import { isWeekend } from "@/utils/day";
-import { isPrivateOrFederal, isStateOrFederal } from "@/utils/job";
+import { isStateOrFederal } from "@/utils/job";
 import { computePayrollRecords } from "@/utils/payrollRecords";
-import { Employee, Job, JobType } from "@prisma/client";
+import { JobType } from "@prisma/client";
 import ExcelJS from "exceljs";
 import { NextRequest, NextResponse } from "next/server";
 import { match } from "ts-pattern";
