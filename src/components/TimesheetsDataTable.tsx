@@ -59,7 +59,11 @@ export const TimesheetsDataTable = ({ timesheets }: Props) => {
           </Button>
           {/* TODO: Following actions. */}
           <Button isDisabled>Review By Job</Button>
-          <Button isDisabled>Download EPI File</Button>
+          <Button
+            onClick={() => window.open(`/api/timesheets/${props.row.original.timesheetId}/epi`)}
+          >
+            Download EPI File
+          </Button>
         </Stack>
       ),
     }),
