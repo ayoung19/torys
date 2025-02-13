@@ -59,6 +59,9 @@ model Job {
   jobId String @default(uuid())
   @@id(fields: [timesheetId, jobId], name: "jobPrimaryKey")
 
+  oldJobId Int? @default(dbgenerated("floor(random() * 1000000)::int"))
+  @@unique([timesheetId, oldJobId])
+
   days Day[]
 
   isActive Boolean
@@ -67,7 +70,6 @@ model Job {
   budgetCurrentCents Int?
   jobType JobType
 }
-
 
 enum JobType {
   PRIVATE
