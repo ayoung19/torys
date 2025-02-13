@@ -35,6 +35,13 @@ export default async function Page() {
       return { status: "error", message: "forbidden" };
     }
 
+    const { oldJobId = 0 } =
+      (await prisma.job.findFirst({
+        orderBy: {
+          oldJobId: "desc",
+        },
+      })) || {};
+
     const upsertedJob = await prisma.job.upsert({
       where: {
         jobPrimaryKey: {
@@ -45,6 +52,7 @@ export default async function Page() {
       update: rest,
       create: {
         timesheetId,
+        oldJobId: oldJobId + 1,
         ...rest,
       },
     });
