@@ -91,6 +91,9 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
           <Badge colorScheme="red">Inactive</Badge>
         ),
     }),
+    columnHelper.accessor("oldJobId", {
+      header: "ID",
+    }),
     columnHelper.accessor("name", {
       header: "Name",
     }),

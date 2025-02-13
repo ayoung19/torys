@@ -37,6 +37,9 @@ export default async function Page() {
 
     const { oldJobId = 0 } =
       (await prisma.job.findFirst({
+        where: {
+          timesheetId,
+        },
         orderBy: {
           oldJobId: "desc",
         },
