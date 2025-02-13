@@ -31,6 +31,10 @@ export const computePayrollRecords = (
 
     // Weekend OT.
     employee.entries.forEach((entry) => {
+      if (!entry.isApproved) {
+        return;
+      }
+
       const record = records.find((record) => record.job.jobId === entry.jobId);
 
       if (record === undefined) {
