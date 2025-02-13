@@ -2,8 +2,8 @@ import { EmployeesPage } from "@/components/EmployeesPage";
 import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
+import { getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, StringifyValues } from "@/utils/types";
-import { auth } from "@clerk/nextjs/server";
 import { Employee } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -27,11 +27,7 @@ export default async function Page() {
 
     const { timesheetId, employeeId, ...rest } = employeeSchema.parse(employee);
 
-    const actor = await prisma.account.findUniqueOrThrow({
-      where: {
-        accountId: auth().userId || "",
-      },
-    });
+    const actor = await getActorOrThrow();
 
     // Actor's role must be dev or admin.
     if (!ACCOUNT_TYPES_DEV_ADMIN.includes(actor.accountType)) {

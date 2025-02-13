@@ -1,7 +1,8 @@
 import { TimesheetJobDayPage } from "@/components/TimesheetJobDayPage";
 import prisma from "@/db";
+import { getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, StringifyValues } from "@/utils/types";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { TZDate } from "@date-fns/tz";
 import { AccountType, Day, Entry, EntryConfirmationStatus } from "@prisma/client";
 import { addDays, format, getDay, parse, startOfWeek } from "date-fns";
@@ -32,11 +33,7 @@ const handleEntry = async (
   cb: () => Promise<ActionResult>,
 ): Promise<ActionResult> => {
   const [actor, day] = await Promise.all([
-    prisma.account.findUniqueOrThrow({
-      where: {
-        accountId: auth().userId || "",
-      },
-    }),
+    getActorOrThrow(),
     prisma.day.findUniqueOrThrow({
       where: {
         dayPrimaryKey: {

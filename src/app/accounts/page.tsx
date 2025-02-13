@@ -1,8 +1,9 @@
 import { AccountsPage } from "@/components/AccountsPage";
 import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN, canActorModifyAccount } from "@/utils/account";
+import { getActor, getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, StringifyValues } from "@/utils/types";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { Account, AccountType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -28,11 +29,7 @@ export default async function Page() {
     // Validate the account id with Clerk.
     await clerkClient.users.getUser(accountId);
 
-    const actor = await prisma.account.findUniqueOrThrow({
-      where: {
-        accountId: auth().userId || "",
-      },
-    });
+    const actor = await getActorOrThrow();
 
     // If actor is admin, they can't make dev or admin accounts.
     if (
@@ -69,11 +66,7 @@ export default async function Page() {
   }
 
   const [actor, accounts, users] = await Promise.all([
-    prisma.account.findUniqueOrThrow({
-      where: {
-        accountId: auth().userId || "",
-      },
-    }),
+    getActor(),
     prisma.account.findMany(),
     (async () => {
       const totalCount = await clerkClient.users.getCount();

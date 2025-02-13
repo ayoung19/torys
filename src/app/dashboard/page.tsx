@@ -2,8 +2,8 @@ import { DashboardPage } from "@/components/DashboardPage";
 import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
+import { getActorOrThrow } from "@/utils/prisma";
 import { ActionResult } from "@/utils/types";
-import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
 export default async function Page() {
@@ -14,11 +14,7 @@ export default async function Page() {
   ): Promise<ActionResult> {
     "use server";
 
-    const actor = await prisma.account.findUniqueOrThrow({
-      where: {
-        accountId: auth().userId || "",
-      },
-    });
+    const actor = await getActorOrThrow();
 
     if (!ACCOUNT_TYPES_DEV_ADMIN.includes(actor.accountType)) {
       return { status: "error", message: "forbidden" };
@@ -45,11 +41,7 @@ export default async function Page() {
   async function denyAction(jobId: string, dayId: string, entryId: string): Promise<ActionResult> {
     "use server";
 
-    const actor = await prisma.account.findUniqueOrThrow({
-      where: {
-        accountId: auth().userId || "",
-      },
-    });
+    const actor = await getActorOrThrow();
 
     if (!ACCOUNT_TYPES_DEV_ADMIN.includes(actor.accountType)) {
       return { status: "error", message: "forbidden" };

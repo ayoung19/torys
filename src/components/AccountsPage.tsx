@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionResult } from "@/hooks/useActionResult";
-import { canActorModifyAccount } from "@/utils/account";
 import { ActionResult, StringifyValues } from "@/utils/types";
 import { Badge, Button, Card, CardFooter, Divider, Stack, Text } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
@@ -19,14 +18,14 @@ import { Pagination } from "./Pagination";
 const columnHelper = createColumnHelper<Account>();
 
 interface Props {
-  actor: Account;
+  actor: Account | null;
   accounts: Account[];
   accountIdToUsername: Record<string, string>;
   upsertAccountAction: (account: StringifyValues<Account>) => Promise<ActionResult>;
 }
 
 export const AccountsPage = ({
-  actor,
+  // actor,
   accounts,
   accountIdToUsername,
   upsertAccountAction,
@@ -139,7 +138,8 @@ export const AccountsPage = ({
                 children: formChildren,
               })
             }
-            isDisabled={!canActorModifyAccount(actor, props.row.original)}
+            // TODO: Lock down views.
+            // isDisabled={!canActorModifyAccount(actor, props.row.original)}
           >
             Edit
           </Button>

@@ -1,7 +1,8 @@
 import prisma from "@/db";
 import { isStateOrFederal } from "@/utils/job";
 import { computePayrollRecords } from "@/utils/payrollRecords";
-import { JobType } from "@prisma/client";
+import { getActor } from "@/utils/prisma";
+import { AccountType, JobType } from "@prisma/client";
 import { addDays, format, parse, startOfWeek } from "date-fns";
 import ExcelJS from "exceljs";
 import { NextRequest, NextResponse } from "next/server";
@@ -11,6 +12,11 @@ export async function GET(
   _: NextRequest,
   { params }: { params: Promise<{ timesheetId: string }> },
 ) {
+  const actor = await getActor();
+  if (actor?.accountType !== AccountType.DEV && actor?.accountType !== AccountType.ADMIN) {
+    return new Response("Forbidden", { status: 403 });
+  }
+
   const { timesheetId } = await params;
 
   const employees = await prisma.employee.findMany({
