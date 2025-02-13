@@ -57,8 +57,11 @@ export const TimesheetsDataTable = ({ timesheets }: Props) => {
           >
             Review By Employee
           </Button>
-          {/* TODO: Following actions. */}
-          <Button isDisabled>Review By Job</Button>
+          <Button
+            onClick={() => window.open(`/api/timesheets/${props.row.original.timesheetId}/by-job`)}
+          >
+            Review By Job
+          </Button>
           <Button
             onClick={() => window.open(`/api/timesheets/${props.row.original.timesheetId}/epi`)}
           >
