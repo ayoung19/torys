@@ -69,6 +69,8 @@ model Job {
   name String
   budgetOriginalCents Int?
   budgetCurrentCents Int?
+  originalLaborSeconds Int?
+  currentLaborSeconds Int?
   jobType JobType
 }
 
