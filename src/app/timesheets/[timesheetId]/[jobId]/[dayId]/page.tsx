@@ -167,6 +167,9 @@ export default async function Page({
             entryId: entryId,
           },
         },
+        include: {
+          employee: true,
+        },
       });
 
       // Employee can't be in two places at once. [0, 0] never conflicts with any entry.
@@ -185,10 +188,20 @@ export default async function Page({
             gt: timeInSeconds,
           },
         },
+        include: {
+          day: {
+            include: {
+              job: true,
+            },
+          },
+        },
       });
 
       if (conflictingEntries.length > 0) {
-        return { status: "error", message: "forbidden" };
+        return {
+          status: "error",
+          message: `Failed to update hours for ${entry.employee.name} due to a time conflict with another timesheet (${conflictingEntries.map((conflictingEntry) => conflictingEntry.day.job.name).join(", ")}).`,
+        };
       }
 
       const deniedEntriesCount = await prisma.entry.count({
