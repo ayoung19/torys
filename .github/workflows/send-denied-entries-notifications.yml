@@ -9,4 +9,4 @@ jobs:
   send_denied_entries_notifications:
     runs-on: ubuntu-latest
     steps:
-      - run: curl -d "apiKey=${{ vars.API_KEY }}" http://torys.onrender.com/api/public/send-denied-entries-notifications
+      - run: curl -d "apiKey=${{ vars.API_KEY }}" https://torys.onrender.com/api/public/send-denied-entries-notifications
