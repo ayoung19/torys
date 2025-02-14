@@ -3,7 +3,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 const isProtectedRoute = createRouteMatcher(["/(.*)"]);
 
 export default clerkMiddleware((auth, req) => {
-  if (!req.nextUrl.pathname.startsWith("/api/confirm") && isProtectedRoute(req)) {
+  if (!req.nextUrl.pathname.startsWith("/api/public") && isProtectedRoute(req)) {
     auth().protect();
   }
 });

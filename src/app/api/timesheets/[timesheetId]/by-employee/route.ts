@@ -13,7 +13,7 @@ export async function GET(
 ) {
   const actor = await getActor();
   if (actor?.accountType !== AccountType.DEV && actor?.accountType !== AccountType.ADMIN) {
-    return new Response("Forbidden", { status: 403 });
+    return new NextResponse("Forbidden", { status: 403 });
   }
 
   const { timesheetId } = await params;
