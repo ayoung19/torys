@@ -1,10 +1,12 @@
 import { TimesheetJobDayPage } from "@/components/TimesheetJobDayPage";
 import prisma from "@/db";
+import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
+import { currentTimesheetId } from "@/utils/date";
 import { getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, StringifyValues } from "@/utils/types";
 import { clerkClient } from "@clerk/nextjs/server";
 import { TZDate } from "@date-fns/tz";
-import { AccountType, Day, Entry, EntryConfirmationStatus } from "@prisma/client";
+import { Account, AccountType, Day, Entry, EntryConfirmationStatus } from "@prisma/client";
 import { addDays, format, getDay, parse, startOfWeek } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
@@ -30,7 +32,7 @@ const handleEntry = async (
   timesheetId: string,
   jobId: string,
   dayId: string,
-  cb: () => Promise<ActionResult>,
+  cb: (actor: Account) => Promise<ActionResult>,
 ): Promise<ActionResult> => {
   const [actor, day] = await Promise.all([
     getActorOrThrow(),
@@ -44,6 +46,10 @@ const handleEntry = async (
       },
     }),
   ]);
+
+  if (actor.accountType === AccountType.COORDINATOR) {
+    return { status: "error", message: "forbidden" };
+  }
 
   // Foreman can only modify today.
   if (
@@ -63,7 +69,7 @@ const handleEntry = async (
   }
 
   const [result] = await Promise.all([
-    cb(),
+    cb(actor),
     // Update editor if actor is a foreman.
     actor.accountType === AccountType.FOREMAN &&
       prisma.day.update({
@@ -136,7 +142,7 @@ export default async function Page({
   ): Promise<ActionResult> {
     "use server";
 
-    return await handleEntry(timesheetId, jobId, dayId, async () => {
+    return await handleEntry(timesheetId, jobId, dayId, async (actor) => {
       const { entryId, timeInSeconds, timeOutSeconds, lunchSeconds } =
         updateEntryBodySchema.parse(body);
 
@@ -185,6 +191,13 @@ export default async function Page({
         return { status: "error", message: "forbidden" };
       }
 
+      const deniedEntriesCount = await prisma.entry.count({
+        where: {
+          timesheetId: currentTimesheetId(),
+          isApproved: false,
+        },
+      });
+
       await prisma.entry.update({
         where: {
           entryPrimaryKey: {
@@ -195,6 +208,7 @@ export default async function Page({
           },
         },
         data: {
+          isApproved: ACCOUNT_TYPES_DEV_ADMIN.includes(actor.accountType),
           entryConfirmationStatus: EntryConfirmationStatus.UNINITIALIZED,
           timeInSeconds,
           timeOutSeconds,
@@ -202,50 +216,83 @@ export default async function Page({
         },
       });
 
-      // TODO: Make this trigger for foreman only.
-
-      // Automatically approve entries if employee didn't work more than 8 hours for the day.
-      const employeeEntries = await prisma.entry.findMany({
-        where: {
-          timesheetId,
-          dayId: parseInt(dayId),
-          employeeId: entry.employeeId,
-        },
-      });
-
-      await prisma.entry.updateMany({
-        where: {
-          timesheetId,
-          dayId: parseInt(dayId),
-          employeeId: entry.employeeId,
-          entryId: {
-            in: employeeEntries.map((entry) => entry.entryId),
-          },
-        },
-        data: {
-          isApproved:
-            employeeEntries.reduce(
-              (acc, curr) => acc + curr.timeOutSeconds - curr.timeInSeconds - curr.lunchSeconds,
-              0,
-            ) <= 28800,
-        },
-      });
-
-      // If entry is outside Monday-Friday 7am-4pm then deny the entry.
-      if (dayId === "0" || dayId === "6" || timeInSeconds < 25200 || timeOutSeconds > 57600) {
-        await prisma.entry.update({
+      if (actor.accountType === AccountType.FOREMAN) {
+        // Automatically approve entries if employee didn't work more than 8 hours for the day.
+        const employeeEntries = await prisma.entry.findMany({
           where: {
-            entryPrimaryKey: {
-              timesheetId,
-              jobId: jobId,
-              dayId: parseInt(dayId),
-              entryId: entry.entryId,
+            timesheetId,
+            dayId: parseInt(dayId),
+            employeeId: entry.employeeId,
+          },
+        });
+
+        await prisma.entry.updateMany({
+          where: {
+            timesheetId,
+            dayId: parseInt(dayId),
+            employeeId: entry.employeeId,
+            entryId: {
+              in: employeeEntries.map((entry) => entry.entryId),
             },
           },
           data: {
-            isApproved: false,
+            isApproved:
+              employeeEntries.reduce(
+                (acc, curr) => acc + curr.timeOutSeconds - curr.timeInSeconds - curr.lunchSeconds,
+                0,
+              ) <= 28800,
           },
         });
+
+        // If entry is outside Monday-Friday 7am-4pm then deny the entry.
+        if (dayId === "0" || dayId === "6" || timeInSeconds < 25200 || timeOutSeconds > 57600) {
+          await prisma.entry.update({
+            where: {
+              entryPrimaryKey: {
+                timesheetId,
+                jobId: jobId,
+                dayId: parseInt(dayId),
+                entryId: entry.entryId,
+              },
+            },
+            data: {
+              isApproved: false,
+            },
+          });
+        }
+
+        const [activeAdminAccounts, newDeniedEntriesCount] = await Promise.all([
+          prisma.account.findMany({
+            where: {
+              isActive: true,
+              accountType: AccountType.ADMIN,
+            },
+          }),
+          prisma.entry.count({
+            where: {
+              timesheetId: currentTimesheetId(),
+              isApproved: false,
+            },
+          }),
+        ]);
+
+        if (newDeniedEntriesCount > deniedEntriesCount) {
+          await Promise.all(
+            activeAdminAccounts.flatMap((activeAdminAccount) => {
+              if (!activeAdminAccount?.phoneNumber) {
+                return [];
+              }
+
+              return client.messages.create({
+                body: `Number of entries awaiting review: ${newDeniedEntriesCount}
+
+Approve or deny them at https://new.torystimesheet.com/`,
+                from: "+18082044203",
+                to: `+1${activeAdminAccount.phoneNumber}`,
+              });
+            }),
+          );
+        }
       }
 
       return null;
