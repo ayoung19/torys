@@ -15,12 +15,17 @@ const jobSchema = z.object({
   name: z.string(),
   budgetOriginalCents: z.coerce.number().int().nullable(),
   budgetCurrentCents: z.coerce.number().int().nullable(),
+  originalLaborSeconds: z.coerce.number().int().nullable(),
+  currentLaborSeconds: z.coerce.number().int().nullable(),
   jobType: z.enum([JobType.PRIVATE, JobType.STATE, JobType.FEDERAL]),
 });
 
 export default async function Page() {
   async function upsertAction(
-    job: Nullable<StringifyValues<Job>, "budgetOriginalCents" | "budgetCurrentCents">,
+    job: Nullable<
+      StringifyValues<Job>,
+      "budgetOriginalCents" | "budgetCurrentCents" | "originalLaborSeconds" | "currentLaborSeconds"
+    >,
   ): Promise<ActionResult> {
     "use server";
 

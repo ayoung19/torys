@@ -3,6 +3,7 @@
 import { useActionResult } from "@/hooks/useActionResult";
 import { centsToDollarString, dollarStringToCentsString } from "@/utils/currency";
 import { currentTimesheetId } from "@/utils/date";
+import { hourStringToSecondsString, secondsToHourString } from "@/utils/time";
 import { ActionResult, Nullable, StringifyValues } from "@/utils/types";
 import {
   Badge,
@@ -82,6 +83,46 @@ const formChildren = ({ Field, watch, setValue }: FormRenderContext<StringifyVal
         />
       </Stack>
     </FormLayout>
+    <FormLayout columns={2}>
+      <Stack>
+        <FormControl display="flex" alignItems="center" justifyContent="space-between">
+          <FormLabel margin={0}>Original Man Hours</FormLabel>
+          <Switch
+            isChecked={watch("originalLaborSeconds") !== "\n"}
+            onChange={(e) =>
+              e.target.checked
+                ? setValue("originalLaborSeconds", "0")
+                : setValue("originalLaborSeconds", "\n")
+            }
+          />
+        </FormControl>
+        <Field
+          name="originalLaborSeconds"
+          type="number"
+          step={0.01}
+          isDisabled={watch("originalLaborSeconds") === "\n"}
+        />
+      </Stack>
+      <Stack>
+        <FormControl display="flex" alignItems="center" justifyContent="space-between">
+          <FormLabel margin={0}>Current Man Hours</FormLabel>
+          <Switch
+            isChecked={watch("currentLaborSeconds") !== "\n"}
+            onChange={(e) =>
+              e.target.checked
+                ? setValue("currentLaborSeconds", "0")
+                : setValue("currentLaborSeconds", "\n")
+            }
+          />
+        </FormControl>
+        <Field
+          name="currentLaborSeconds"
+          type="number"
+          step={0.01}
+          isDisabled={watch("currentLaborSeconds") === "\n"}
+        />
+      </Stack>
+    </FormLayout>
     <Field
       name="jobType"
       label="Job Type"
@@ -98,7 +139,10 @@ const formChildren = ({ Field, watch, setValue }: FormRenderContext<StringifyVal
 interface Props {
   jobs: Job[];
   upsertAction: (
-    job: Nullable<StringifyValues<Job>, "budgetOriginalCents" | "budgetCurrentCents">,
+    job: Nullable<
+      StringifyValues<Job>,
+      "budgetOriginalCents" | "budgetCurrentCents" | "originalLaborSeconds" | "currentLaborSeconds"
+    >,
   ) => Promise<ActionResult>;
 }
 
@@ -133,6 +177,14 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
           data.budgetCurrentCents === "\n"
             ? null
             : dollarStringToCentsString(data.budgetCurrentCents),
+        originalLaborSeconds:
+          data.originalLaborSeconds === "\n"
+            ? null
+            : hourStringToSecondsString(data.originalLaborSeconds),
+        currentLaborSeconds:
+          data.currentLaborSeconds === "\n"
+            ? null
+            : hourStringToSecondsString(data.currentLaborSeconds),
       }),
     );
 
@@ -152,7 +204,6 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
     columnHelper.accessor("name", {
       header: "Name",
     }),
-    // TODO: Allow setting field to null.
     columnHelper.accessor("budgetOriginalCents", {
       header: "Original Budget",
       cell: (props) => {
@@ -167,6 +218,24 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
         const value = props.getValue();
 
         return value && centsToDollarString(value);
+      },
+    }),
+    columnHelper.accessor("originalLaborSeconds", {
+      header: "Original Man Hours",
+      cell: (props) => {
+        const value = props.getValue();
+
+        return value && secondsToHourString(value);
+      },
+    }),
+    columnHelper.accessor("currentLaborSeconds", {
+      header: "Current Man Hours",
+      cell: (props) => {
+        const value = props.getValue();
+
+        console.log(value);
+
+        return value && secondsToHourString(value);
       },
     }),
     columnHelper.accessor("jobType", {
@@ -195,6 +264,14 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
                     props.row.original.budgetCurrentCents === null
                       ? "\n"
                       : centsToDollarString(props.row.original.budgetCurrentCents),
+                  originalLaborSeconds:
+                    props.row.original.originalLaborSeconds === null
+                      ? "\n"
+                      : secondsToHourString(props.row.original.originalLaborSeconds),
+                  currentLaborSeconds:
+                    props.row.original.currentLaborSeconds === null
+                      ? "\n"
+                      : secondsToHourString(props.row.original.currentLaborSeconds),
                   jobType: props.row.original.jobType.toString(),
                 },
                 onSubmit: formOnSubmit,
@@ -239,6 +316,8 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
                   name: "",
                   budgetOriginalCents: "\n",
                   budgetCurrentCents: "\n",
+                  originalLaborSeconds: "\n",
+                  currentLaborSeconds: "\n",
                   jobType: JobType.PRIVATE.toString(),
                 },
                 onSubmit: formOnSubmit,

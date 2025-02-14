@@ -55,6 +55,8 @@ export async function GET(
     {},
     { width: 16 },
     { width: 16 },
+    { width: 16 },
+    { width: 16 },
   ];
 
   const seen = new Set<string>();
@@ -122,6 +124,8 @@ export async function GET(
         "Paid Out",
         "Original Budget",
         "Remaining Budget",
+        "Original Man Hours",
+        "Remaining Man Hours",
       ]);
 
       let totalSeconds = 0;
@@ -203,8 +207,10 @@ export async function GET(
         "Total",
         totalSeconds / 3600,
         totalCents / 100,
-        job.budgetOriginalCents ? job.budgetOriginalCents / 100 : "",
-        job.budgetCurrentCents ? (job.budgetCurrentCents - totalCents) / 100 : "",
+        job.budgetOriginalCents !== null ? job.budgetOriginalCents / 100 : "",
+        job.budgetCurrentCents !== null ? (job.budgetCurrentCents - totalCents) / 100 : "",
+        job.originalLaborSeconds !== null ? job.originalLaborSeconds / 3600 : "",
+        job.currentLaborSeconds !== null ? (job.currentLaborSeconds - totalSeconds) / 3600 : "",
       ]);
       sheet.addRow([]);
     });
