@@ -45,5 +45,5 @@ Approve or deny them at https://new.torystimesheet.com/`,
     );
   }
 
-  return NextResponse.json({});
+  return new NextResponse("Success", { status: 200 });
 }
