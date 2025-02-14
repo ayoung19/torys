@@ -3,7 +3,7 @@ import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
 import { getActorOrThrow } from "@/utils/prisma";
-import { ActionResult, StringifyValues } from "@/utils/types";
+import { ActionResult, Nullable, StringifyValues } from "@/utils/types";
 import { Job, JobType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -19,7 +19,9 @@ const jobSchema = z.object({
 });
 
 export default async function Page() {
-  async function upsertAction(job: StringifyValues<Job>): Promise<ActionResult> {
+  async function upsertAction(
+    job: Nullable<StringifyValues<Job>, "budgetOriginalCents" | "budgetCurrentCents">,
+  ): Promise<ActionResult> {
     "use server";
 
     const { timesheetId, jobId, ...rest } = jobSchema.parse(job);

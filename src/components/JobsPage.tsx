@@ -3,8 +3,19 @@
 import { useActionResult } from "@/hooks/useActionResult";
 import { centsToDollarString, dollarStringToCentsString } from "@/utils/currency";
 import { currentTimesheetId } from "@/utils/date";
-import { ActionResult, StringifyValues } from "@/utils/types";
-import { Badge, Button, Card, CardFooter, Divider, Stack, Text } from "@chakra-ui/react";
+import { ActionResult, Nullable, StringifyValues } from "@/utils/types";
+import {
+  Badge,
+  Button,
+  Card,
+  CardFooter,
+  Divider,
+  FormControl,
+  FormLabel,
+  Stack,
+  Switch,
+  Text,
+} from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
 import { Job, JobType } from "@prisma/client";
 import { DataTable, FormLayout, FormRenderContext, SearchInput, useModals } from "@saas-ui/react";
@@ -19,7 +30,7 @@ import { Pagination } from "./Pagination";
 
 const columnHelper = createColumnHelper<Job>();
 
-const formChildren = ({ Field }: FormRenderContext<StringifyValues<Job>>) => (
+const formChildren = ({ Field, watch, setValue }: FormRenderContext<StringifyValues<Job>>) => (
   <FormLayout>
     <Field
       name="isActive"
@@ -32,8 +43,44 @@ const formChildren = ({ Field }: FormRenderContext<StringifyValues<Job>>) => (
     />
     <Field name="name" label="Name" type="text" isRequired={true} rules={{ required: true }} />
     <FormLayout columns={2}>
-      <Field name="budgetOriginalCents" label="Original Budget" type="number" step={0.01} />
-      <Field name="budgetCurrentCents" label="Current Budget" type="number" step={0.01} />
+      <Stack>
+        <FormControl display="flex" alignItems="center" justifyContent="space-between">
+          <FormLabel margin={0}>Original Budget</FormLabel>
+          <Switch
+            isChecked={watch("budgetOriginalCents") !== "\n"}
+            onChange={(e) =>
+              e.target.checked
+                ? setValue("budgetOriginalCents", "0.00")
+                : setValue("budgetOriginalCents", "\n")
+            }
+          />
+        </FormControl>
+        <Field
+          name="budgetOriginalCents"
+          type="number"
+          step={0.01}
+          isDisabled={watch("budgetOriginalCents") === "\n"}
+        />
+      </Stack>
+      <Stack>
+        <FormControl display="flex" alignItems="center" justifyContent="space-between">
+          <FormLabel margin={0}>Current Budget</FormLabel>
+          <Switch
+            isChecked={watch("budgetCurrentCents") !== "\n"}
+            onChange={(e) =>
+              e.target.checked
+                ? setValue("budgetCurrentCents", "0.00")
+                : setValue("budgetCurrentCents", "\n")
+            }
+          />
+        </FormControl>
+        <Field
+          name="budgetCurrentCents"
+          type="number"
+          step={0.01}
+          isDisabled={watch("budgetCurrentCents") === "\n"}
+        />
+      </Stack>
     </FormLayout>
     <Field
       name="jobType"
@@ -50,7 +97,9 @@ const formChildren = ({ Field }: FormRenderContext<StringifyValues<Job>>) => (
 
 interface Props {
   jobs: Job[];
-  upsertAction: (job: StringifyValues<Job>) => Promise<ActionResult>;
+  upsertAction: (
+    job: Nullable<StringifyValues<Job>, "budgetOriginalCents" | "budgetCurrentCents">,
+  ) => Promise<ActionResult>;
 }
 
 export const JobsPage = ({ jobs, upsertAction }: Props) => {
@@ -76,8 +125,14 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
     actionResult(
       await upsertAction({
         ...data,
-        budgetOriginalCents: dollarStringToCentsString(data.budgetOriginalCents),
-        budgetCurrentCents: dollarStringToCentsString(data.budgetCurrentCents),
+        budgetOriginalCents:
+          data.budgetOriginalCents === "\n"
+            ? null
+            : dollarStringToCentsString(data.budgetOriginalCents),
+        budgetCurrentCents:
+          data.budgetCurrentCents === "\n"
+            ? null
+            : dollarStringToCentsString(data.budgetCurrentCents),
       }),
     );
 
@@ -132,12 +187,14 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
                   jobId: props.row.original.jobId,
                   isActive: props.row.original.isActive.toString(),
                   name: props.row.original.name,
-                  budgetOriginalCents: centsToDollarString(
-                    props.row.original.budgetOriginalCents || 0,
-                  ),
-                  budgetCurrentCents: centsToDollarString(
-                    props.row.original.budgetCurrentCents || 0,
-                  ),
+                  budgetOriginalCents:
+                    props.row.original.budgetOriginalCents === null
+                      ? "\n"
+                      : centsToDollarString(props.row.original.budgetOriginalCents),
+                  budgetCurrentCents:
+                    props.row.original.budgetCurrentCents === null
+                      ? "\n"
+                      : centsToDollarString(props.row.original.budgetCurrentCents),
                   jobType: props.row.original.jobType.toString(),
                 },
                 onSubmit: formOnSubmit,
@@ -180,8 +237,8 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
                   jobId: "",
                   isActive: "true",
                   name: "",
-                  budgetOriginalCents: centsToDollarString(0),
-                  budgetCurrentCents: centsToDollarString(0),
+                  budgetOriginalCents: "\n",
+                  budgetCurrentCents: "\n",
                   jobType: JobType.PRIVATE.toString(),
                 },
                 onSubmit: formOnSubmit,
