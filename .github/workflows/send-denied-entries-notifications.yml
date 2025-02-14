@@ -1,0 +1,12 @@
+name: Send Denied Entries Notifications
+
+on:
+  schedule:
+    # Every friday at 10:00pm HST. https://crontab.guru/#0_8_*_*_6
+    - cron: "0 8 * * 6"
+
+jobs:
+  send_denied_entries_notifications:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -d "${{ vars.API_KEY }}" http://torys.onrender.com/api/public/send-denied-entries-notifications
