@@ -2,9 +2,8 @@ name: Send Denied Entries Notifications
 
 on:
   schedule:
-    # TODO: Change to every Friday.
-    # Every day at 10:00pm HST. https://crontab.guru/#0_8_*_*_6
-    - cron: "0 8 * * *"
+    # Every Friday at 10:00pm HST. https://crontab.guru/#0_8_*_*_6
+    - cron: "0 8 * * 6"
 
 jobs:
   send_denied_entries_notifications:
