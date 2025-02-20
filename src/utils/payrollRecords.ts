@@ -1,4 +1,5 @@
 import { Employee, Job, JobType, Prisma } from "@prisma/client";
+import { match } from "ts-pattern";
 import { isWeekend } from "./day";
 import { isPrivateOrFederal, isStateOrFederal } from "./job";
 
@@ -7,6 +8,32 @@ type Record = {
   employee: Employee;
   dayIdToSeconds: [number, number, number, number, number, number, number];
   dayIdToOvertimeSeconds: [number, number, number, number, number, number, number];
+};
+
+export const recordToRegularTotal = (record: Record) => {
+  const centsPerHour = match(record.job.jobType)
+    .with(JobType.PRIVATE, () => record.employee.ratePrivateCentsPerHour)
+    .with(JobType.STATE, JobType.FEDERAL, () => record.employee.rateDavisBaconCentsPerHour)
+    .exhaustive();
+
+  const seconds = record.dayIdToSeconds.reduce((acc, curr) => acc + curr, 0);
+
+  const cents = Math.ceil((seconds / 3600) * centsPerHour);
+
+  return { seconds, cents };
+};
+
+export const recordToOvertimeTotal = (record: Record) => {
+  const centsPerHour = match(record.job.jobType)
+    .with(JobType.PRIVATE, () => record.employee.ratePrivateCentsPerHour * 1.5)
+    .with(JobType.STATE, JobType.FEDERAL, () => record.employee.rateDavisBaconOvertimeCentsPerHour)
+    .exhaustive();
+
+  const seconds = record.dayIdToOvertimeSeconds.reduce((acc, curr) => acc + curr, 0);
+
+  const cents = Math.ceil((seconds / 3600) * centsPerHour);
+
+  return { seconds, cents };
 };
 
 export const computePayrollRecords = (
