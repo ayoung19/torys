@@ -32,6 +32,9 @@ export const SmartNavbar = () => {
           <NavbarLink isActive={pathname.includes("/timesheets")} href="/timesheets">
             Timesheets
           </NavbarLink>
+          <NavbarLink isActive={pathname.includes("/audit-log")} href="/audit-log">
+            Audit Log
+          </NavbarLink>
         </NavbarItem>
       </NavbarContent>
       <NavbarContent justifyContent="end">

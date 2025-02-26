@@ -1,7 +1,7 @@
 import { AccountsPage } from "@/components/AccountsPage";
 import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN, canActorModifyAccount } from "@/utils/account";
-import { getActor, getActorOrThrow } from "@/utils/prisma";
+import { createAction, getActor, getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, StringifyValues } from "@/utils/types";
 import { clerkClient } from "@clerk/nextjs/server";
 import { Account, AccountType } from "@prisma/client";
@@ -49,7 +49,7 @@ export default async function Page() {
       return { status: "error", message: "forbidden" };
     }
 
-    await prisma.account.upsert({
+    const upsertedAccount = await prisma.account.upsert({
       where: {
         accountId,
       },
@@ -58,6 +58,11 @@ export default async function Page() {
         accountId,
         ...rest,
       },
+    });
+
+    await createAction(actor, upsertedAccount.accountId, {
+      type: "upsert-account",
+      data: upsertedAccount,
     });
 
     revalidatePath("/accounts");

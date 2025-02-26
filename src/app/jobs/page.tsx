@@ -2,7 +2,7 @@ import { JobsPage } from "@/components/JobsPage";
 import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
-import { getActorOrThrow } from "@/utils/prisma";
+import { createAction, getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, Nullable, StringifyValues } from "@/utils/types";
 import { Job, JobType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -72,6 +72,8 @@ export default async function Page() {
       })),
       skipDuplicates: true,
     });
+
+    await createAction(actor, upsertedJob.jobId, { type: "upsert-job", data: upsertedJob });
 
     revalidatePath("/jobs");
 

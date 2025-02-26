@@ -2,7 +2,7 @@ import { EmployeesPage } from "@/components/EmployeesPage";
 import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
-import { getActorOrThrow } from "@/utils/prisma";
+import { createAction, getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, StringifyValues } from "@/utils/types";
 import { Employee } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -34,7 +34,7 @@ export default async function Page() {
       return { status: "error", message: "forbidden" };
     }
 
-    await prisma.employee.upsert({
+    const upsertedEmployee = await prisma.employee.upsert({
       where: {
         employeePrimaryKey: {
           timesheetId,
@@ -46,6 +46,11 @@ export default async function Page() {
         timesheetId,
         ...rest,
       },
+    });
+
+    await createAction(actor, upsertedEmployee.employeeId, {
+      type: "upsert-employee",
+      data: upsertedEmployee,
     });
 
     revalidatePath("/employees");
