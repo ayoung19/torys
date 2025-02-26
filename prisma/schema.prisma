@@ -20,7 +20,7 @@ model Account {
   daysEdited Day[]
   actions    Action[]
 
-  isActive Boolean
+  isActive    Boolean
   phoneNumber String
   accountType AccountType
 }
@@ -36,47 +36,49 @@ model Timesheet {
   timesheetId String @id
 
   employees Employee[]
-  jobs Job[]
+  jobs      Job[]
 }
 
 model Employee {
   timesheetId String
-  timesheet Timesheet @relation(fields: [timesheetId], references: [timesheetId])
-  employeeId String @default(uuid())
-  @@id(fields: [timesheetId, employeeId], name: "employeePrimaryKey")
+  timesheet   Timesheet @relation(fields: [timesheetId], references: [timesheetId])
+  employeeId  String    @default(uuid())
 
   entries Entry[]
 
   // Allowed to be added to entry.
-  isActive Boolean
+  isActive                           Boolean
   // TODO: Make unique.
-  displayId String
-  name String
-  phoneNumber String
-  fringeCode String
-  ratePrivateCentsPerHour Int
-  rateDavisBaconCentsPerHour Int
+  displayId                          String
+  name                               String
+  phoneNumber                        String
+  fringeCode                         String
+  ratePrivateCentsPerHour            Int
+  rateDavisBaconCentsPerHour         Int
   rateDavisBaconOvertimeCentsPerHour Int
+
+  @@id(fields: [timesheetId, employeeId], name: "employeePrimaryKey")
 }
 
 model Job {
   timesheetId String
-  timesheet Timesheet @relation(fields: [timesheetId], references: [timesheetId])
-  jobId String @default(uuid())
-  @@id(fields: [timesheetId, jobId], name: "jobPrimaryKey")
+  timesheet   Timesheet @relation(fields: [timesheetId], references: [timesheetId])
+  jobId       String    @default(uuid())
 
   oldJobId Int
-  @@unique([timesheetId, oldJobId])
 
   days Day[]
 
-  isActive Boolean
-  name String
-  budgetOriginalCents Int?
-  budgetCurrentCents Int?
+  isActive             Boolean
+  name                 String
+  budgetOriginalCents  Int?
+  budgetCurrentCents   Int?
   originalLaborSeconds Int?
-  currentLaborSeconds Int?
-  jobType JobType
+  currentLaborSeconds  Int?
+  jobType              JobType
+
+  @@id(fields: [timesheetId, jobId], name: "jobPrimaryKey")
+  @@unique([timesheetId, oldJobId])
 }
 
 enum JobType {
@@ -87,37 +89,39 @@ enum JobType {
 
 model Day {
   timesheetId String
-  jobId String
-  job Job @relation(fields: [timesheetId, jobId], references: [timesheetId, jobId])
-  dayId Int
-  @@id(fields: [timesheetId, jobId, dayId], name: "dayPrimaryKey")
+  jobId       String
+  job         Job    @relation(fields: [timesheetId, jobId], references: [timesheetId, jobId])
+  dayId       Int
 
-  editor Account? @relation(fields: [editorId], references: [accountId])
+  editor   Account? @relation(fields: [editorId], references: [accountId])
   editorId String?
 
   entries Entry[]
 
   description String
+
+  @@id(fields: [timesheetId, jobId, dayId], name: "dayPrimaryKey")
 }
 
 model Entry {
   timesheetId String
-  jobId String
-  dayId Int
-  day Day @relation(fields: [timesheetId, jobId, dayId], references: [timesheetId, jobId, dayId])
-  entryId String @default(uuid())
-  @@id(fields: [timesheetId, jobId, dayId, entryId], name: "entryPrimaryKey")
+  jobId       String
+  dayId       Int
+  day         Day    @relation(fields: [timesheetId, jobId, dayId], references: [timesheetId, jobId, dayId])
+  entryId     String @default(uuid())
 
-  employee Employee @relation(fields: [timesheetId, employeeId], references: [timesheetId, employeeId])
+  employee   Employee @relation(fields: [timesheetId, employeeId], references: [timesheetId, employeeId])
   employeeId String
 
   // Approved by admin and counted in timesheet.
-  isApproved Boolean
+  isApproved              Boolean
   entryConfirmationStatus EntryConfirmationStatus
 
-  timeInSeconds Int
+  timeInSeconds  Int
   timeOutSeconds Int
-  lunchSeconds Int
+  lunchSeconds   Int
+
+  @@id(fields: [timesheetId, jobId, dayId, entryId], name: "entryPrimaryKey")
 }
 
 enum EntryConfirmationStatus {
