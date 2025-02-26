@@ -5,6 +5,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider = "zod-prisma-types"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -14,6 +18,7 @@ model Account {
   accountId String @id
 
   daysEdited Day[]
+  actions    Action[]
 
   isActive Boolean
   phoneNumber String
@@ -119,4 +124,17 @@ enum EntryConfirmationStatus {
   UNINITIALIZED
   AWAITING
   CONFIRMED
+}
+
+model Action {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+
+  actor   Account @relation(fields: [actorId], references: [accountId])
+  actorId String
+
+  targetId String
+
+  actionType String
+  actionJson Json
 }
