@@ -6,7 +6,7 @@ import { getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, StringifyValues } from "@/utils/types";
 import { clerkClient } from "@clerk/nextjs/server";
 import { TZDate } from "@date-fns/tz";
-import { Account, AccountType, Day, Entry, EntryConfirmationStatus } from "@prisma/client";
+import { Account, AccountType, Entry, EntryConfirmationStatus } from "@prisma/client";
 import { addDays, format, getDay, parse, startOfWeek } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
@@ -21,10 +21,6 @@ const updateEntryBodySchema = z.object({
   timeInSeconds: z.coerce.number().int(),
   timeOutSeconds: z.coerce.number().int(),
   lunchSeconds: z.coerce.number().int(),
-});
-
-const updateDayBodySchema = z.object({
-  description: z.string(),
 });
 
 // Performs shared authorization checks and day modifications.
@@ -432,24 +428,38 @@ Approve or deny them at https://new.torystimesheet.com/`,
     });
   }
 
-  async function updateDay(body: Pick<StringifyValues<Day>, "description">): Promise<ActionResult> {
+  async function updateDay(jobIsActive: string, description: string): Promise<ActionResult> {
     "use server";
 
     return await handleEntry(timesheetId, jobId, dayId, async () => {
-      const { description } = updateDayBodySchema.parse(body);
-
-      await prisma.day.update({
-        where: {
-          dayPrimaryKey: {
-            timesheetId,
-            jobId,
-            dayId: parseInt(dayId),
+      await Promise.all([
+        prisma.job.update({
+          where: {
+            jobPrimaryKey: {
+              timesheetId,
+              jobId,
+            },
           },
-        },
-        data: {
-          description,
-        },
-      });
+          data: {
+            isActive: z
+              .enum(["true", "false"])
+              .transform((value) => value === "true")
+              .parse(jobIsActive),
+          },
+        }),
+        prisma.day.update({
+          where: {
+            dayPrimaryKey: {
+              timesheetId,
+              jobId,
+              dayId: parseInt(dayId),
+            },
+          },
+          data: {
+            description,
+          },
+        }),
+      ]);
 
       return null;
     });

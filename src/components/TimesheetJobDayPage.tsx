@@ -62,7 +62,7 @@ interface Props {
   ) => Promise<ActionResult>;
   deleteEntry: (entryId: string) => Promise<ActionResult>;
   copyCrew: () => Promise<ActionResult>;
-  updateDay: (body: Pick<StringifyValues<Day>, "description">) => Promise<ActionResult>;
+  updateDay: (jobIsActive: string, description: string) => Promise<ActionResult>;
   getConfirmations: () => Promise<ActionResult>;
 }
 
@@ -409,11 +409,22 @@ export const TimesheetJobDayPage = ({
                 modals.form({
                   title: "Edit Details",
                   defaultValues: {
+                    jobIsActive: job.isActive.toString(),
                     description: day.description,
                   },
-                  onSubmit: async (data) => actionResult(await updateDay(data)),
+                  onSubmit: async (data) =>
+                    actionResult(await updateDay(data.jobIsActive, data.description)),
                   children: ({ Field }) => (
                     <FormLayout>
+                      <Field
+                        name="jobIsActive"
+                        label="Status"
+                        type="select"
+                        options={[
+                          { label: "In Progress", value: "true" },
+                          { label: "Completed", value: "false" },
+                        ]}
+                      />
                       <Field name="description" label="Description" type="textarea" />
                     </FormLayout>
                   ),
@@ -427,17 +438,20 @@ export const TimesheetJobDayPage = ({
         <Divider />
         <CardBody>
           <PropertyList>
+            <Property mb={2}>
+              <PropertyLabel p={0}>Status</PropertyLabel>
+              <PropertyValue>
+                {job.isActive ? (
+                  <Badge colorScheme="orange">In Progress</Badge>
+                ) : (
+                  <Badge colorScheme="green">Completed</Badge>
+                )}
+              </PropertyValue>
+            </Property>
             <Property alignItems="start">
               <PropertyLabel p={0}>Description</PropertyLabel>
               <PropertyValue>{day.description}</PropertyValue>
             </Property>
-            {/* TODO: Job completion status. */}
-            {/* <Property>
-              <PropertyLabel p={0}>Status</PropertyLabel>
-              <PropertyValue>
-                <Badge colorScheme="orange">In Progress</Badge>
-              </PropertyValue>
-            </Property> */}
           </PropertyList>
         </CardBody>
       </Card>

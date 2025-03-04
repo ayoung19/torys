@@ -233,8 +233,6 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
       cell: (props) => {
         const value = props.getValue();
 
-        console.log(value);
-
         return value && secondsToHourString(value);
       },
     }),

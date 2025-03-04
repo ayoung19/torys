@@ -15,9 +15,10 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { TZDate } from "@date-fns/tz";
-import { Employee, Entry, Job, Timesheet } from "@prisma/client";
+import { Employee, Entry, Job, Prisma, Timesheet } from "@prisma/client";
 import { addDays, format, parse, startOfWeek } from "date-fns";
 import { useCallback } from "react";
+import { ActiveTimesheetsDataTable } from "./ActiveTimesheetsDataTable";
 import { TimesheetsDataTable } from "./TimesheetsDataTable";
 
 interface Props {
@@ -25,6 +26,12 @@ interface Props {
   timesheets: Timesheet[];
   employees: Employee[];
   jobs: Job[];
+  activeJobsWithDays: Prisma.JobGetPayload<{
+    include: {
+      days: true;
+    };
+  }>[];
+  accountIdToUsername: Record<string, string>;
   approveAction: (jobId: string, dayId: string, entryId: string) => Promise<ActionResult>;
   denyAction: (jobId: string, dayId: string, entryId: string) => Promise<ActionResult>;
 }
@@ -34,6 +41,8 @@ export const DashboardPage = ({
   timesheets,
   employees,
   jobs,
+  activeJobsWithDays,
+  accountIdToUsername,
   approveAction,
   denyAction,
 }: Props) => {
@@ -50,9 +59,9 @@ export const DashboardPage = ({
   );
 
   return (
-    <Stack>
+    <Stack spacing="8">
       {deniedEntries.length > 0 && (
-        <Card mb="4">
+        <Card>
           <CardHeader py={3}>
             <Flex justify="space-between" align="center">
               <Text fontSize="lg" fontWeight="bold">
@@ -165,6 +174,10 @@ export const DashboardPage = ({
           </CardBody>
         </Card>
       )}
+      <ActiveTimesheetsDataTable
+        jobsWithDays={activeJobsWithDays}
+        accountIdToUsername={accountIdToUsername}
+      />
       <TimesheetsDataTable timesheets={timesheets} />
     </Stack>
   );
