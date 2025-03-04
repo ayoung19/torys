@@ -61,6 +61,7 @@ const formChildren = ({ Field, watch, setValue }: FormRenderContext<StringifyVal
           type="number"
           step={0.01}
           isDisabled={watch("budgetOriginalCents") === "\n"}
+          pattern="-?[0-9]*(\.[0-9]+)?"
         />
       </Stack>
       <Stack>
@@ -80,6 +81,7 @@ const formChildren = ({ Field, watch, setValue }: FormRenderContext<StringifyVal
           type="number"
           step={0.01}
           isDisabled={watch("budgetCurrentCents") === "\n"}
+          pattern="-?[0-9]*(\.[0-9]+)?"
         />
       </Stack>
     </FormLayout>
@@ -101,6 +103,7 @@ const formChildren = ({ Field, watch, setValue }: FormRenderContext<StringifyVal
           type="number"
           step={0.01}
           isDisabled={watch("originalLaborSeconds") === "\n"}
+          pattern="-?[0-9]*(\.[0-9]+)?"
         />
       </Stack>
       <Stack>
@@ -120,6 +123,7 @@ const formChildren = ({ Field, watch, setValue }: FormRenderContext<StringifyVal
           type="number"
           step={0.01}
           isDisabled={watch("currentLaborSeconds") === "\n"}
+          pattern="-?[0-9]*(\.[0-9]+)?"
         />
       </Stack>
     </FormLayout>
