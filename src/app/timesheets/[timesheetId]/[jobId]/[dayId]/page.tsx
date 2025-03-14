@@ -2,7 +2,7 @@ import { TimesheetJobDayPage } from "@/components/TimesheetJobDayPage";
 import prisma from "@/db";
 import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
-import { getActorOrThrow } from "@/utils/prisma";
+import { createAction, getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, StringifyValues } from "@/utils/types";
 import { clerkClient } from "@clerk/nextjs/server";
 import { TZDate } from "@date-fns/tz";
@@ -10,6 +10,7 @@ import { Account, AccountType, Entry, EntryConfirmationStatus } from "@prisma/cl
 import { addDays, format, getDay, parse, startOfWeek } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+import stringify from "safe-stable-stringify";
 import { match } from "ts-pattern";
 import twilio from "twilio";
 import { z } from "zod";
@@ -431,8 +432,8 @@ Approve or deny them at https://new.torystimesheet.com/`,
   async function updateDay(jobIsActive: string, description: string): Promise<ActionResult> {
     "use server";
 
-    return await handleEntry(timesheetId, jobId, dayId, async () => {
-      await Promise.all([
+    return await handleEntry(timesheetId, jobId, dayId, async (actor) => {
+      const [updatedJob, updatedDay] = await Promise.all([
         prisma.job.update({
           where: {
             jobPrimaryKey: {
@@ -460,6 +461,24 @@ Approve or deny them at https://new.torystimesheet.com/`,
           },
         }),
       ]);
+
+      await createAction(actor, updatedJob.jobId, {
+        type: "upsert-job",
+        data: updatedJob,
+      });
+
+      await createAction(
+        actor,
+        stringify({
+          timesheetId,
+          jobId,
+          dayId: parseInt(dayId),
+        }) || "",
+        {
+          type: "update-day",
+          data: updatedDay,
+        },
+      );
 
       return null;
     });

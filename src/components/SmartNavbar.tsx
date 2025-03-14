@@ -1,6 +1,6 @@
 "use client";
 
-import { Heading } from "@chakra-ui/react";
+import { Badge, Heading, Stack } from "@chakra-ui/react";
 import { UserButton } from "@clerk/nextjs";
 import { Link, Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarLink } from "@saas-ui/react";
 import { usePathname } from "next/navigation";
@@ -11,9 +11,12 @@ export const SmartNavbar = () => {
   return (
     <Navbar borderBottomWidth="1px">
       <NavbarBrand>
-        <Link href="/">
-          <Heading size="md">Tory&apos;s Timesheet</Heading>
-        </Link>
+        <Stack direction="row" align="center">
+          <Link href="/">
+            <Heading size="md">Tory&apos;s Timesheet</Heading>
+          </Link>
+          {process.env.NODE_ENV === "development" && <Badge colorScheme="blue">Dev</Badge>}
+        </Stack>
       </NavbarBrand>
       <NavbarContent>
         <NavbarItem>

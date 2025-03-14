@@ -1,5 +1,6 @@
 import { AuditLogPage } from "@/components/AuditLogPage";
 import prisma from "@/db";
+import { currentTimesheetId } from "@/utils/date";
 import { clerkClient } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 
@@ -25,9 +26,30 @@ export default async function Page() {
     })(),
   ]);
 
+  const [employees, jobs, entries] = await Promise.all([
+    prisma.employee.findMany({
+      where: {
+        timesheetId: currentTimesheetId(),
+      },
+    }),
+    prisma.job.findMany({
+      where: {
+        timesheetId: currentTimesheetId(),
+      },
+    }),
+    prisma.entry.findMany({
+      where: {
+        timesheetId: currentTimesheetId(),
+      },
+    }),
+  ]);
+
   return (
     <AuditLogPage
       actions={actions}
+      employees={employees}
+      jobs={jobs}
+      entries={entries}
       accountIdToUsername={users.data.reduce<Record<string, string>>((acc, curr) => {
         if (curr.username) {
           acc[curr.id] = curr.username;

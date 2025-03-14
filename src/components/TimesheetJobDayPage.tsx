@@ -43,6 +43,7 @@ import {
 import { addDays, format, parse, startOfWeek } from "date-fns";
 import { useCallback } from "react";
 import { FiTrash } from "react-icons/fi";
+import stringify from "safe-stable-stringify";
 import { match } from "ts-pattern";
 import { TimeInput } from "./TimeInput";
 
@@ -405,15 +406,21 @@ export const TimesheetJobDayPage = ({
               Details
             </Text>
             <Button
-              onClick={() =>
+              onClick={() => {
+                const defaultValues = {
+                  jobIsActive: job.isActive.toString(),
+                  description: day.description,
+                };
+
                 modals.form({
                   title: "Edit Details",
-                  defaultValues: {
-                    jobIsActive: job.isActive.toString(),
-                    description: day.description,
-                  },
+                  defaultValues: defaultValues,
                   onSubmit: async (data) =>
-                    actionResult(await updateDay(data.jobIsActive, data.description)),
+                    actionResult(
+                      stringify(data) === stringify(defaultValues)
+                        ? null
+                        : await updateDay(data.jobIsActive, data.description),
+                    ),
                   children: ({ Field }) => (
                     <FormLayout>
                       <Field
@@ -428,8 +435,8 @@ export const TimesheetJobDayPage = ({
                       <Field name="description" label="Description" type="textarea" />
                     </FormLayout>
                   ),
-                })
-              }
+                });
+              }}
             >
               Edit
             </Button>

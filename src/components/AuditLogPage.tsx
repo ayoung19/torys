@@ -2,9 +2,9 @@
 
 import { selectedActionAtom } from "@/states/atoms";
 import { ActionJson } from "@/utils/action";
-import { Card, CardFooter, Divider, Grid, GridItem, Stack, Text } from "@chakra-ui/react";
+import { Badge, Card, CardFooter, Divider, Grid, GridItem, Stack, Text } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
-import { Action, Prisma } from "@prisma/client";
+import { Action, Employee, Entry, Job, Prisma } from "@prisma/client";
 import { DataTable } from "@saas-ui/react";
 import {
   createColumnHelper,
@@ -12,9 +12,12 @@ import {
   getPaginationRowModel,
   Table,
 } from "@tanstack/react-table";
+import { addDays, format, parse, startOfWeek } from "date-fns";
 import { useAtomValue } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { match } from "ts-pattern";
+import { DayDayPrimaryKeyCompoundUniqueInputSchema } from "../../prisma/generated/zod";
+import { UpdateDayActionJson } from "./action/UpdateDayActionJson";
 import { UpsertAccountActionJson } from "./action/UpsertAccountActionJson";
 import { UpsertEmployeeActionJson } from "./action/UpsertEmployeeActionJson";
 import { UpsertJobActionJson } from "./action/UpsertJobActionJson";
@@ -25,11 +28,20 @@ const columnHelper = createColumnHelper<Action>();
 
 interface Props {
   actions: Action[];
+  employees: Employee[];
+  jobs: Job[];
+  entries: Entry[];
   accountIdToUsername: Record<string, string>;
   findFirstAction: (args: Prisma.ActionFindFirstArgs) => Promise<Action | null>;
 }
 
-export const AuditLogPage = ({ actions, accountIdToUsername, findFirstAction }: Props) => {
+export const AuditLogPage = ({
+  actions,
+  employees,
+  jobs,
+  accountIdToUsername,
+  findFirstAction,
+}: Props) => {
   const [search] = useState("");
   const [length, setLength] = useState(actions.length);
   const selectedAction = useAtomValue(selectedActionAtom);
@@ -57,12 +69,33 @@ export const AuditLogPage = ({ actions, accountIdToUsername, findFirstAction }: 
     columnHelper.accessor((row) => accountIdToUsername[row.actorId], {
       header: "Actor",
     }),
-    // TODO: Create UI for this.
-    // columnHelper.accessor("targetId", {
-    //   header: "Target",
-    // }),
     columnHelper.accessor("actionType", {
       header: "Action",
+    }),
+    columnHelper.accessor("targetId", {
+      header: "Target",
+      cell: (props) =>
+        match(props.row.original.actionType)
+          .with("upsert-account", () => accountIdToUsername[props.getValue()])
+          .with(
+            "upsert-employee",
+            () => employees.find((employee) => employee.employeeId == props.getValue())?.name,
+          )
+          .with("upsert-job", () => jobs.find((job) => job.jobId == props.getValue())?.name)
+          .with("update-day", () => {
+            const dayPrimaryKey = DayDayPrimaryKeyCompoundUniqueInputSchema.parse(
+              JSON.parse(props.getValue()),
+            );
+
+            return `${jobs.find((job) => job.jobId === dayPrimaryKey.jobId)?.name} - ${format(
+              addDays(
+                startOfWeek(parse(dayPrimaryKey.timesheetId, "yyyy-MM-dd", new Date())),
+                dayPrimaryKey.dayId,
+              ),
+              "EEEE, MM/dd",
+            )}`;
+          })
+          .otherwise(() => <Badge>Unknown</Badge>),
     }),
     columnHelper.display({
       id: "actions",
@@ -148,6 +181,13 @@ export const AuditLogPage = ({ actions, accountIdToUsername, findFirstAction }: 
                 ))
                 .with({ type: "upsert-job" }, (actionJson) => (
                   <UpsertJobActionJson
+                    action={selectedAction}
+                    actionJson={actionJson}
+                    findFirstAction={findFirstAction}
+                  />
+                ))
+                .with({ type: "update-day" }, (actionJson) => (
+                  <UpdateDayActionJson
                     action={selectedAction}
                     actionJson={actionJson}
                     findFirstAction={findFirstAction}

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AccountSchema, EmployeeSchema, JobSchema } from "../../prisma/generated/zod";
+import { AccountSchema, DaySchema, EmployeeSchema, JobSchema } from "../../prisma/generated/zod";
 
 export const UpsertAccountAction = z.object({
   type: z.literal("upsert-account"),
@@ -19,9 +19,16 @@ export const UpsertJobAction = z.object({
 });
 export type UpsertJobAction = z.infer<typeof UpsertJobAction>;
 
+export const UpdateDayAction = z.object({
+  type: z.literal("update-day"),
+  data: DaySchema,
+});
+export type UpdateDayAction = z.infer<typeof UpdateDayAction>;
+
 export const ActionJson = z.discriminatedUnion("type", [
   UpsertAccountAction,
   UpsertEmployeeAction,
   UpsertJobAction,
+  UpdateDayAction,
 ]);
 export type ActionJson = z.infer<typeof ActionJson>;
