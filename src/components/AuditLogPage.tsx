@@ -4,7 +4,7 @@ import { selectedActionAtom } from "@/states/atoms";
 import { ActionJson } from "@/utils/action";
 import { Card, CardFooter, Divider, Grid, GridItem, Stack, Text } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
-import { Action } from "@prisma/client";
+import { Action, Prisma } from "@prisma/client";
 import { DataTable } from "@saas-ui/react";
 import {
   createColumnHelper,
@@ -14,6 +14,10 @@ import {
 } from "@tanstack/react-table";
 import { useAtomValue } from "jotai";
 import { useEffect, useRef, useState } from "react";
+import { match } from "ts-pattern";
+import { UpsertAccountActionJson } from "./action/UpsertAccountActionJson";
+import { UpsertEmployeeActionJson } from "./action/UpsertEmployeeActionJson";
+import { UpsertJobActionJson } from "./action/UpsertJobActionJson";
 import { Pagination } from "./Pagination";
 import { ShowHideButton } from "./ShowHideButton";
 
@@ -22,9 +26,10 @@ const columnHelper = createColumnHelper<Action>();
 interface Props {
   actions: Action[];
   accountIdToUsername: Record<string, string>;
+  findFirstAction: (args: Prisma.ActionFindFirstArgs) => Promise<Action | null>;
 }
 
-export const AuditLogPage = ({ actions, accountIdToUsername }: Props) => {
+export const AuditLogPage = ({ actions, accountIdToUsername, findFirstAction }: Props) => {
   const [search] = useState("");
   const [length, setLength] = useState(actions.length);
   const selectedAction = useAtomValue(selectedActionAtom);
@@ -124,11 +129,35 @@ export const AuditLogPage = ({ actions, accountIdToUsername }: Props) => {
           </Card>
         </GridItem>
         <GridItem colSpan={4}>
-          <Card>
+          <Card p="4">
             {selectedActionJson ? (
-              <Text as="pre">{JSON.stringify(selectedActionJson, null, 2)}</Text>
+              match(selectedActionJson)
+                .with({ type: "upsert-account" }, (actionJson) => (
+                  <UpsertAccountActionJson
+                    action={selectedAction}
+                    actionJson={actionJson}
+                    findFirstAction={findFirstAction}
+                  />
+                ))
+                .with({ type: "upsert-employee" }, (actionJson) => (
+                  <UpsertEmployeeActionJson
+                    action={selectedAction}
+                    actionJson={actionJson}
+                    findFirstAction={findFirstAction}
+                  />
+                ))
+                .with({ type: "upsert-job" }, (actionJson) => (
+                  <UpsertJobActionJson
+                    action={selectedAction}
+                    actionJson={actionJson}
+                    findFirstAction={findFirstAction}
+                  />
+                ))
+                .exhaustive()
             ) : (
-              <Text textAlign="center">No row selected.</Text>
+              <Text fontSize="md" textAlign="center">
+                No row selected.
+              </Text>
             )}
           </Card>
         </GridItem>

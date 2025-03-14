@@ -1,8 +1,17 @@
 import { AuditLogPage } from "@/components/AuditLogPage";
 import prisma from "@/db";
 import { clerkClient } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 
 export default async function Page() {
+  async function findFirstAction(args: Prisma.ActionFindFirstArgs) {
+    "use server";
+
+    const action = await prisma.action.findFirst(args);
+
+    return action;
+  }
+
   const [actions, users] = await Promise.all([
     prisma.action.findMany({
       orderBy: {
@@ -26,6 +35,7 @@ export default async function Page() {
 
         return acc;
       }, {})}
+      findFirstAction={findFirstAction}
     />
   );
 }

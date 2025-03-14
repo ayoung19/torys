@@ -1,5 +1,6 @@
 import { SmartNavbar } from "@/components/SmartNavbar";
 import prisma from "@/db";
+import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import { theme } from "@/utils/theme";
 import { Container } from "@chakra-ui/react";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -104,7 +105,7 @@ export default async function RootLayout({
             <ModalsProvider>
               <AppShell navbar={<SmartNavbar />}>
                 <Container maxW="container.xl" pt="4">
-                  {children}
+                  <ReactQueryProvider>{children}</ReactQueryProvider>
                 </Container>
               </AppShell>
             </ModalsProvider>
