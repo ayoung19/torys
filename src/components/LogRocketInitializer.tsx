@@ -7,4 +7,6 @@ export const LogRocketInitializer = () => {
   useEffect(() => {
     LogRocket.init("jhaizt/torys");
   }, []);
+
+  return null;
 };
