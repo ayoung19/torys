@@ -1,3 +1,4 @@
+import { LogRocketInitializer } from "@/components/LogRocketInitializer";
 import { SmartNavbar } from "@/components/SmartNavbar";
 import prisma from "@/db";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
@@ -103,6 +104,7 @@ export default async function RootLayout({
     <ClerkProvider>
       <html lang="en" data-theme="light" className={fonts.inter.variable}>
         <body>
+          <LogRocketInitializer />
           <NextTopLoader color="#8952e0" height={2} showSpinner={false} shadow={false} />
           <SaasProvider linkComponent={Link} theme={theme}>
             <ModalsProvider>
