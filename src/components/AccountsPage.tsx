@@ -21,7 +21,10 @@ interface Props {
   actor: Account | null;
   accounts: Account[];
   accountIdToUsername: Record<string, string>;
-  upsertAccountAction: (account: StringifyValues<Account>) => Promise<ActionResult>;
+  upsertAccountAction: (
+    account: StringifyValues<Account>,
+    { username, password }: { username: string; password: string },
+  ) => Promise<ActionResult>;
 }
 
 export const AccountsPage = ({
@@ -30,8 +33,6 @@ export const AccountsPage = ({
   accountIdToUsername,
   upsertAccountAction,
 }: Props) => {
-  const accountIds = accounts.map(({ accountId }) => accountId);
-
   const modals = useModals();
   const actionResult = useActionResult();
 
@@ -50,7 +51,10 @@ export const AccountsPage = ({
 
   const tableRef = useRef<Table<Account>>(null);
 
-  const formChildren = ({ Field, formState }: FormRenderContext<StringifyValues<Account>>) => (
+  const formChildren = ({
+    Field,
+    formState,
+  }: FormRenderContext<StringifyValues<Account> & { username: string; password: string }>) => (
     <FormLayout>
       <Field
         name="isActive"
@@ -62,24 +66,18 @@ export const AccountsPage = ({
         ]}
       />
       <Field
-        name="accountId"
-        renderValue={
-          formState.defaultValues?.accountId
-            ? () => accountIdToUsername[formState.defaultValues?.accountId || ""]
-            : undefined
-        }
+        name="username"
         label="Username"
-        type="select"
-        options={Object.entries(accountIdToUsername)
-          .map(([accountId, username]) => ({
-            label: username,
-            value: accountId,
-          }))
-          .filter((option) => !accountIds.includes(option.value))}
-        isReadOnly={!!formState.defaultValues?.accountId}
-        isDisabled={!!formState.defaultValues?.accountId}
+        type="text"
         isRequired={true}
         rules={{ required: true }}
+      />
+      <Field
+        name="password"
+        label="Password"
+        type="password"
+        isRequired={!formState.defaultValues?.accountId}
+        rules={{ required: !formState.defaultValues?.accountId }}
       />
       <Field name="phoneNumber" label="Phone Number" type="text" />
       <Field
@@ -133,8 +131,16 @@ export const AccountsPage = ({
                   isActive: props.row.original.isActive.toString(),
                   phoneNumber: props.row.original.phoneNumber,
                   accountType: props.row.original.accountType.toString(),
+                  username: accountIdToUsername[props.row.original.accountId] || "",
+                  password: "",
                 },
-                onSubmit: async (data) => actionResult(await upsertAccountAction(data)),
+                onSubmit: async (data) =>
+                  actionResult(
+                    await upsertAccountAction(data, {
+                      username: data.username,
+                      password: data.password,
+                    }),
+                  ),
                 children: formChildren,
               })
             }
@@ -176,8 +182,16 @@ export const AccountsPage = ({
                   isActive: "true",
                   phoneNumber: "",
                   accountType: "",
+                  username: "",
+                  password: "",
                 },
-                onSubmit: async (data) => actionResult(await upsertAccountAction(data)),
+                onSubmit: async (data) =>
+                  actionResult(
+                    await upsertAccountAction(data, {
+                      username: data.username,
+                      password: data.password,
+                    }),
+                  ),
                 children: formChildren,
               })
             }

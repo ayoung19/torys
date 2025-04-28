@@ -20,14 +20,47 @@ const accountSchema = z.object({
   ]),
 });
 
+const getClerkUserOrNull = async (accountId: string) => {
+  try {
+    return await clerkClient.users.getUser(accountId);
+  } catch {
+    return null;
+  }
+};
+
 export default async function Page() {
-  async function upsertAccountAction(account: StringifyValues<Account>): Promise<ActionResult> {
+  async function upsertAccountAction(
+    account: StringifyValues<Account>,
+    { username, password }: { username: string; password: string },
+  ): Promise<ActionResult> {
     "use server";
 
-    const { accountId, ...rest } = accountSchema.parse(account);
+    // eslint-disable-next-line
+    let { accountId, ...rest } = accountSchema.parse(account);
 
-    // Validate the account id with Clerk.
-    await clerkClient.users.getUser(accountId);
+    // Upsert clerk user.
+    const clerkUser = await getClerkUserOrNull(accountId);
+    if (clerkUser === null) {
+      const newClerkUser = await clerkClient.users.createUser({
+        username,
+        password,
+        skipPasswordChecks: true,
+      });
+
+      accountId = newClerkUser.id;
+    } else {
+      if (username !== clerkUser.username || password) {
+        try {
+          await clerkClient.users.updateUser(accountId, {
+            username,
+            password,
+            skipPasswordChecks: true,
+          });
+        } catch (e) {
+          return { status: "error", message: String(e) };
+        }
+      }
+    }
 
     const actor = await getActorOrThrow();
 
