@@ -1,6 +1,7 @@
 import { SmartNavbar } from "@/components/SmartNavbar";
 import prisma from "@/db";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
+import { getActorOrThrow } from "@/utils/prisma";
 import { theme } from "@/utils/theme";
 import { Container } from "@chakra-ui/react";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -96,6 +97,8 @@ export default async function RootLayout({
     }
   }
 
+  const actor = await getActorOrThrow();
+
   return (
     <ClerkProvider>
       <html lang="en" data-theme="light" className={fonts.inter.variable}>
@@ -103,7 +106,7 @@ export default async function RootLayout({
           <NextTopLoader color="#8952e0" height={2} showSpinner={false} shadow={false} />
           <SaasProvider linkComponent={Link} theme={theme}>
             <ModalsProvider>
-              <AppShell navbar={<SmartNavbar />}>
+              <AppShell navbar={<SmartNavbar actor={actor} />}>
                 <Container maxW="container.xl" pt="4">
                   <ReactQueryProvider>{children}</ReactQueryProvider>
                 </Container>
