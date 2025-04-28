@@ -38,6 +38,12 @@ export default async function Page() {
     // eslint-disable-next-line
     let { accountId, ...rest } = accountSchema.parse(account);
 
+    const actor = await getActorOrThrow();
+
+    if (actor.accountType !== AccountType.DEV && actor.accountType !== AccountType.ADMIN) {
+      return { status: "error", message: "forbidden" };
+    }
+
     // Upsert clerk user.
     const clerkUser = await getClerkUserOrNull(accountId);
     if (clerkUser === null) {
@@ -61,8 +67,6 @@ export default async function Page() {
         }
       }
     }
-
-    const actor = await getActorOrThrow();
 
     // If actor is admin, they can't make dev or admin accounts.
     if (
