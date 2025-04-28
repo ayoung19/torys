@@ -6,7 +6,9 @@ async function main() {
   if (process.env.DEV_ACCOUNT_ID) {
     const devAccount = await prisma.account.upsert({
       where: { accountId: process.env.DEV_ACCOUNT_ID },
-      update: {},
+      update: {
+        phoneNumber: "8082188306",
+      },
       create: {
         accountId: process.env.DEV_ACCOUNT_ID,
         isActive: true,
