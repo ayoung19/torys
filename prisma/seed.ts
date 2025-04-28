@@ -10,7 +10,7 @@ async function main() {
       create: {
         accountId: process.env.DEV_ACCOUNT_ID,
         isActive: true,
-        phoneNumber: "",
+        phoneNumber: "8082188306",
         accountType: AccountType.DEV,
       },
     });
