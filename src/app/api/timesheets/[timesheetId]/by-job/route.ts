@@ -108,7 +108,7 @@ export async function GET(
           jobNameRow.getCell(dayIdCompleted + 4).fill = {
             type: "pattern",
             pattern: "solid",
-            fgColor: { argb: "ffffe066" },
+            fgColor: { argb: "ffffff00" },
           };
         }
       }
