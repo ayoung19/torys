@@ -1,6 +1,5 @@
 import { JobsPage } from "@/components/JobsPage";
 import prisma from "@/db";
-import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
 import { createAction, getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, Nullable, StringifyValues } from "@/utils/types";
@@ -34,10 +33,7 @@ export default async function Page() {
     const actor = await getActorOrThrow();
 
     // Actor's role must be dev, admin, or coordinator.
-    if (
-      !ACCOUNT_TYPES_DEV_ADMIN.includes(actor.accountType) ||
-      actor.accountType === AccountType.COORDINATOR
-    ) {
+    if (actor.accountType === AccountType.FOREMAN) {
       return { status: "error", message: "forbidden" };
     }
 
