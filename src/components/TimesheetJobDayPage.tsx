@@ -148,19 +148,15 @@ export const TimesheetJobDayPage = ({
                 modals.form({
                   title: "Add Crew Member",
                   defaultValues: {
-                    employeeIds: [] as string[],
+                    employeeId: "",
                   },
-                  onSubmit: (data) =>
-                    data.employeeIds.forEach(async (employeeId) =>
-                      actionResult(await createEntry(employeeId)),
-                    ),
+                  onSubmit: async (data) => actionResult(await createEntry(data.employeeId)),
                   children: ({ Field }) => (
                     <FormLayout>
                       <Field
-                        name="employeeIds"
+                        name="employeeId"
                         label="Employee"
-                        type="select"
-                        multiple
+                        type="native-select"
                         options={[{ label: "- Select Crew Member -", value: "" }].concat(
                           employees
                             .filter((employee) => employee.isActive)
