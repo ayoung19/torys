@@ -4,7 +4,7 @@ import { ACCOUNT_TYPES_DEV_ADMIN } from "@/utils/account";
 import { currentTimesheetId } from "@/utils/date";
 import { createAction, getActorOrThrow } from "@/utils/prisma";
 import { ActionResult, Nullable, StringifyValues } from "@/utils/types";
-import { Job, JobType } from "@prisma/client";
+import { AccountType, Job, JobType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -33,8 +33,11 @@ export default async function Page() {
 
     const actor = await getActorOrThrow();
 
-    // Actor's role must be dev or admin.
-    if (!ACCOUNT_TYPES_DEV_ADMIN.includes(actor.accountType)) {
+    // Actor's role must be dev, admin, or coordinator.
+    if (
+      !ACCOUNT_TYPES_DEV_ADMIN.includes(actor.accountType) ||
+      actor.accountType === AccountType.COORDINATOR
+    ) {
       return { status: "error", message: "forbidden" };
     }
 
