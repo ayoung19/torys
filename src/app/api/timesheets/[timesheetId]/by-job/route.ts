@@ -143,7 +143,7 @@ export async function GET(
           let cents = Math.ceil((seconds / 3600) * centsPerHour);
 
           sheet.addRow([
-            record.employee.displayId,
+            parseInt(record.employee.displayId),
             record.employee.name,
             centsPerHour / 100,
             record.dayIdToSeconds[0] / 3600 || "",
@@ -171,7 +171,7 @@ export async function GET(
           cents = Math.ceil((seconds / 3600) * centsPerHour);
           if (seconds > 0) {
             const overtimeRow = sheet.addRow([
-              record.employee.displayId,
+              parseInt(record.employee.displayId),
               `${record.employee.name}/OT`,
               centsPerHour / 100,
               record.dayIdToOvertimeSeconds[0] / 3600 || "",
