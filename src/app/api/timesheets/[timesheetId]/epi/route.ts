@@ -119,7 +119,8 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="epi-${timesheetId}.xlsx"`,
+      // Filename should be of form EPI1SI-05-03-25.
+      "Content-Disposition": `attachment; filename="EPI1SI-${timesheetId.slice(5)}-${timesheetId.slice(2, 4)}.xlsx"`,
     },
   });
 }
