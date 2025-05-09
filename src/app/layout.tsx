@@ -6,6 +6,7 @@ import { getActorOrThrow } from "@/utils/prisma";
 import { theme } from "@/utils/theme";
 import { Container } from "@chakra-ui/react";
 import { ClerkProvider } from "@clerk/nextjs";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { TZDate } from "@date-fns/tz";
 import { AppShell, ModalsProvider, SaasProvider } from "@saas-ui/react";
 import { endOfWeek, format } from "date-fns";
@@ -98,13 +99,16 @@ export default async function RootLayout({
     }
   }
 
-  const actor = await getActorOrThrow();
+  const [actor, user] = await Promise.all([
+    getActorOrThrow(),
+    clerkClient.users.getUser(auth().userId || ""),
+  ]);
 
   return (
     <html lang="en" data-theme="light" className={fonts.inter.variable}>
       <body>
         <ClerkProvider>
-          <LogRocketInitializer />
+          <LogRocketInitializer actor={actor} actorUsername={user.username || ""} />
           <NextTopLoader color="#8952e0" height={2} showSpinner={false} shadow={false} />
           <SaasProvider linkComponent={Link} theme={theme}>
             <ModalsProvider>
