@@ -101,9 +101,9 @@ export default async function RootLayout({
   const actor = await getActorOrThrow();
 
   return (
-    <ClerkProvider>
-      <html lang="en" data-theme="light" className={fonts.inter.variable}>
-        <body>
+    <html lang="en" data-theme="light" className={fonts.inter.variable}>
+      <body>
+        <ClerkProvider>
           <LogRocketInitializer />
           <NextTopLoader color="#8952e0" height={2} showSpinner={false} shadow={false} />
           <SaasProvider linkComponent={Link} theme={theme}>
@@ -115,8 +115,8 @@ export default async function RootLayout({
               </AppShell>
             </ModalsProvider>
           </SaasProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
