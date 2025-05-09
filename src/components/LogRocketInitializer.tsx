@@ -20,7 +20,7 @@ export const LogRocketInitializer = ({ actor, actorUsername }: Props) => {
     LogRocket.identify(actor.accountId, {
       name: actorUsername,
     });
-  }, []);
+  }, [actor.accountId, actorUsername]);
 
   return null;
 };
