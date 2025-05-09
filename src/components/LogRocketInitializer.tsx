@@ -11,6 +11,10 @@ interface Props {
 
 export const LogRocketInitializer = ({ actor, actorUsername }: Props) => {
   useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      return;
+    }
+
     LogRocket.init("torys/torys");
 
     LogRocket.identify(actor.accountId, {

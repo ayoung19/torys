@@ -47,7 +47,8 @@ export const ChangeList = <T,>({ oldObject, newObject, fields }: Props<T>) => {
                 <>
                   <Text fontSize="md">
                     {field.render(oldObject[field.accessor]) === null ||
-                    field.render(oldObject[field.accessor]) === "" ? (
+                    field.render(oldObject[field.accessor]) === "" ||
+                    field.render(oldObject[field.accessor]) === 0 ? (
                       <Badge>Unset</Badge>
                     ) : (
                       field.render(oldObject[field.accessor])
@@ -58,7 +59,8 @@ export const ChangeList = <T,>({ oldObject, newObject, fields }: Props<T>) => {
               )}
               <Text fontSize="md">
                 {field.render(newObject[field.accessor]) === null ||
-                field.render(newObject[field.accessor]) === "" ? (
+                field.render(newObject[field.accessor]) === "" ||
+                field.render(newObject[field.accessor]) === 0 ? (
                   <Badge>Unset</Badge>
                 ) : (
                   field.render(newObject[field.accessor])

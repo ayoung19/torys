@@ -1,11 +1,10 @@
 "use client";
 
-import { selectedActionAtom } from "@/states/atoms";
-import { ActionJson } from "@/utils/action";
-import { Badge, Card, CardFooter, Divider, Grid, GridItem, Stack, Text } from "@chakra-ui/react";
+import { ActionJson, UpsertEntryAction } from "@/utils/action";
+import { Badge, Button, Card, CardFooter, Divider, Stack, Text } from "@chakra-ui/react";
 import { usePagination } from "@mantine/hooks";
 import { Action, Employee, Entry, Job, Prisma } from "@prisma/client";
-import { DataTable } from "@saas-ui/react";
+import { DataTable, useModals } from "@saas-ui/react";
 import {
   createColumnHelper,
   getFilteredRowModel,
@@ -13,16 +12,15 @@ import {
   Table,
 } from "@tanstack/react-table";
 import { addDays, format, parse, startOfWeek } from "date-fns";
-import { useAtomValue } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { DayDayPrimaryKeyCompoundUniqueInputSchema } from "../../prisma/generated/zod";
 import { UpdateDayActionJson } from "./action/UpdateDayActionJson";
 import { UpsertAccountActionJson } from "./action/UpsertAccountActionJson";
 import { UpsertEmployeeActionJson } from "./action/UpsertEmployeeActionJson";
+import { UpsertEntryActionJson } from "./action/UpsertEntryActionJson";
 import { UpsertJobActionJson } from "./action/UpsertJobActionJson";
 import { Pagination } from "./Pagination";
-import { ShowHideButton } from "./ShowHideButton";
 
 const columnHelper = createColumnHelper<Action>();
 
@@ -42,10 +40,10 @@ export const AuditLogPage = ({
   accountIdToUsername,
   findFirstAction,
 }: Props) => {
+  const modals = useModals();
+
   const [search] = useState("");
   const [length, setLength] = useState(actions.length);
-  const selectedAction = useAtomValue(selectedActionAtom);
-  const selectedActionJson = selectedAction && ActionJson.parse(selectedAction.actionJson);
 
   const pageSize = 10;
   const total = Math.ceil(length / pageSize);
@@ -95,6 +93,14 @@ export const AuditLogPage = ({
               "EEEE, MM/dd",
             )}`;
           })
+          .with("upsert-entry", () => {
+            const entry = UpsertEntryAction.parse(props.row.original.actionJson).data;
+
+            return `${employees.find((employee) => employee.employeeId === entry.employeeId)?.name} - ${jobs.find((job) => job.jobId === entry.jobId)?.name} - ${format(
+              addDays(startOfWeek(parse(entry.timesheetId, "yyyy-MM-dd", new Date())), entry.dayId),
+              "EEEE, MM/dd",
+            )}`;
+          })
           .otherwise(() => <Badge>Unknown</Badge>),
     }),
     columnHelper.display({
@@ -103,7 +109,51 @@ export const AuditLogPage = ({
       enableSorting: false,
       cell: (props) => (
         <Stack direction="row" justifyContent="flex-end">
-          <ShowHideButton action={props.row.original} />
+          <Button
+            onClick={() =>
+              modals.open({
+                body: match(ActionJson.parse(props.row.original.actionJson))
+                  .with({ type: "upsert-account" }, (actionJson) => (
+                    <UpsertAccountActionJson
+                      action={props.row.original}
+                      actionJson={actionJson}
+                      findFirstAction={findFirstAction}
+                    />
+                  ))
+                  .with({ type: "upsert-employee" }, (actionJson) => (
+                    <UpsertEmployeeActionJson
+                      action={props.row.original}
+                      actionJson={actionJson}
+                      findFirstAction={findFirstAction}
+                    />
+                  ))
+                  .with({ type: "upsert-job" }, (actionJson) => (
+                    <UpsertJobActionJson
+                      action={props.row.original}
+                      actionJson={actionJson}
+                      findFirstAction={findFirstAction}
+                    />
+                  ))
+                  .with({ type: "update-day" }, (actionJson) => (
+                    <UpdateDayActionJson
+                      action={props.row.original}
+                      actionJson={actionJson}
+                      findFirstAction={findFirstAction}
+                    />
+                  ))
+                  .with({ type: "upsert-entry" }, (actionJson) => (
+                    <UpsertEntryActionJson
+                      action={props.row.original}
+                      actionJson={actionJson}
+                      findFirstAction={findFirstAction}
+                    />
+                  ))
+                  .exhaustive(),
+              })
+            }
+          >
+            Show
+          </Button>
         </Stack>
       ),
     }),
@@ -131,77 +181,31 @@ export const AuditLogPage = ({
           /> */}
         </Stack>
       </Stack>
-      <Grid gridTemplateColumns="repeat(12, 1fr)" gap={8}>
-        <GridItem colSpan={8}>
-          <Card>
-            <DataTable
-              instanceRef={tableRef}
-              columns={columns}
-              data={actions}
-              getPaginationRowModel={getPaginationRowModel()}
-              getFilteredRowModel={getFilteredRowModel()}
-              initialState={{
-                sorting: [{ id: "timestamp", desc: true }],
-              }}
-              state={{
-                pagination: {
-                  pageIndex: pagination.active - 1,
-                  pageSize,
-                },
-                globalFilter: search,
-              }}
-              onStateChange={() =>
-                setLength(tableRef.current?.getFilteredRowModel().rows.length || 0)
-              }
-              isSortable={true}
-            />
-            <Divider />
-            <CardFooter alignItems="center" justifyContent="flex-end">
-              <Pagination pagination={pagination} />
-            </CardFooter>
-          </Card>
-        </GridItem>
-        <GridItem colSpan={4}>
-          <Card p="4">
-            {selectedActionJson ? (
-              match(selectedActionJson)
-                .with({ type: "upsert-account" }, (actionJson) => (
-                  <UpsertAccountActionJson
-                    action={selectedAction}
-                    actionJson={actionJson}
-                    findFirstAction={findFirstAction}
-                  />
-                ))
-                .with({ type: "upsert-employee" }, (actionJson) => (
-                  <UpsertEmployeeActionJson
-                    action={selectedAction}
-                    actionJson={actionJson}
-                    findFirstAction={findFirstAction}
-                  />
-                ))
-                .with({ type: "upsert-job" }, (actionJson) => (
-                  <UpsertJobActionJson
-                    action={selectedAction}
-                    actionJson={actionJson}
-                    findFirstAction={findFirstAction}
-                  />
-                ))
-                .with({ type: "update-day" }, (actionJson) => (
-                  <UpdateDayActionJson
-                    action={selectedAction}
-                    actionJson={actionJson}
-                    findFirstAction={findFirstAction}
-                  />
-                ))
-                .exhaustive()
-            ) : (
-              <Text fontSize="md" textAlign="center">
-                No row selected.
-              </Text>
-            )}
-          </Card>
-        </GridItem>
-      </Grid>
+      <Card>
+        <DataTable
+          instanceRef={tableRef}
+          columns={columns}
+          data={actions}
+          getPaginationRowModel={getPaginationRowModel()}
+          getFilteredRowModel={getFilteredRowModel()}
+          initialState={{
+            sorting: [{ id: "timestamp", desc: true }],
+          }}
+          state={{
+            pagination: {
+              pageIndex: pagination.active - 1,
+              pageSize,
+            },
+            globalFilter: search,
+          }}
+          onStateChange={() => setLength(tableRef.current?.getFilteredRowModel().rows.length || 0)}
+          isSortable={true}
+        />
+        <Divider />
+        <CardFooter alignItems="center" justifyContent="flex-end">
+          <Pagination pagination={pagination} />
+        </CardFooter>
+      </Card>
     </Stack>
   );
 };
