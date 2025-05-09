@@ -98,7 +98,7 @@ export default async function Page({
   async function createEntry(employeeId: string): Promise<ActionResult> {
     "use server";
 
-    return await handleEntry(timesheetId, jobId, dayId, async () => {
+    return await handleEntry(timesheetId, jobId, dayId, async (actor) => {
       const employee = await prisma.employee.findUniqueOrThrow({
         where: {
           employeePrimaryKey: {
@@ -113,7 +113,7 @@ export default async function Page({
         return { status: "error", message: "forbidden" };
       }
 
-      await prisma.entry.create({
+      const createdEntry = await prisma.entry.create({
         data: {
           timesheetId,
           jobId,
@@ -125,6 +125,11 @@ export default async function Page({
           timeOutSeconds: 0,
           lunchSeconds: 0,
         },
+      });
+
+      await createAction(actor, createdEntry.entryId, {
+        type: "upsert-entry",
+        data: createdEntry,
       });
 
       return null;
@@ -208,7 +213,7 @@ export default async function Page({
         },
       });
 
-      await prisma.entry.update({
+      const updatedEntry = await prisma.entry.update({
         where: {
           entryPrimaryKey: {
             timesheetId,
@@ -224,6 +229,11 @@ export default async function Page({
           timeOutSeconds,
           lunchSeconds,
         },
+      });
+
+      await createAction(actor, updatedEntry.entryId, {
+        type: "upsert-entry",
+        data: updatedEntry,
       });
 
       if (actor.accountType === AccountType.FOREMAN) {

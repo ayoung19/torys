@@ -111,13 +111,15 @@ export default async function RootLayout({
           <LogRocketInitializer actor={actor} actorUsername={user.username || ""} />
           <NextTopLoader color="#8952e0" height={2} showSpinner={false} shadow={false} />
           <SaasProvider linkComponent={Link} theme={theme}>
-            <ModalsProvider>
-              <AppShell navbar={<SmartNavbar actor={actor} />}>
-                <Container maxW="container.xl" pt="4">
-                  <ReactQueryProvider>{children}</ReactQueryProvider>
-                </Container>
-              </AppShell>
-            </ModalsProvider>
+            <ReactQueryProvider>
+              <ModalsProvider>
+                <AppShell navbar={<SmartNavbar actor={actor} />}>
+                  <Container maxW="container.xl" pt="4">
+                    {children}
+                  </Container>
+                </AppShell>
+              </ModalsProvider>
+            </ReactQueryProvider>
           </SaasProvider>
         </ClerkProvider>
       </body>
