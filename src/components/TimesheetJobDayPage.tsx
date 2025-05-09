@@ -170,7 +170,7 @@ export const TimesheetJobDayPage = ({
                               value: employee.employeeId,
                             })),
                         )}
-                        listProps={{ maxH: "500px" }}
+                        listProps={{ maxH: "400px" }}
                       />
                     </FormLayout>
                   ),
