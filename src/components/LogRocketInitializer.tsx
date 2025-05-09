@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 export const LogRocketInitializer = () => {
   useEffect(() => {
-    LogRocket.init("jhaizt/torys");
+    LogRocket.init("torys/torys");
   }, []);
 
   return null;
