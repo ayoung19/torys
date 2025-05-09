@@ -11,7 +11,6 @@ import { AppShell, ModalsProvider, SaasProvider } from "@saas-ui/react";
 import { endOfWeek, format } from "date-fns";
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import NextTopLoader from "nextjs-toploader";
 import { fonts } from "./fonts";
 
@@ -103,12 +102,6 @@ export default async function RootLayout({
 
   return (
     <html lang="en" data-theme="light" className={fonts.inter.variable}>
-      <head>
-        <Script src="https://cdn.lgrckt-in.com/LogRocket.min.js" strategy="afterInteractive" />
-        <Script id="gtag-init" strategy="afterInteractive">
-          {`window.LogRocket && window.LogRocket.init('jhaizt/torys');`}
-        </Script>
-      </head>
       <body>
         <ClerkProvider>
           <LogRocketInitializer />
