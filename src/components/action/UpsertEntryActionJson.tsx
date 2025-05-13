@@ -1,6 +1,7 @@
 "use client";
 
 import { UpsertEntryAction } from "@/utils/action";
+import { secondsToHourString } from "@/utils/time";
 import { TZDate } from "@date-fns/tz";
 import { Action, Prisma } from "@prisma/client";
 import { Banner, LoadingOverlay, LoadingSpinner } from "@saas-ui/react";
@@ -80,7 +81,7 @@ export const UpsertEntryActionJson = ({ action, actionJson, findFirstAction }: P
         {
           accessor: "lunchSeconds",
           label: "Lunch Hours",
-          render: (value) => value,
+          render: (value) => value && secondsToHourString(value),
         },
       ]}
     />
