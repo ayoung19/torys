@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.10.4",
-    "@clerk/nextjs": "^5.4.1",
+    "@clerk/nextjs": "^5.7.5",
     "@date-fns/tz": "^1.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
