@@ -5,6 +5,7 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
+  Button,
   Card,
   CardBody,
   Stack,
@@ -64,6 +65,13 @@ export const TimesheetJobDaysPage = ({ timesheet, job, days }: Props) => {
             </CardBody>
           </Card>
         ))}
+      <Button
+        colorScheme="primary"
+        size="md"
+        onClick={() => window.open(`/api/timesheets/${timesheet.timesheetId}/${job.jobId}`)}
+      >
+        Export
+      </Button>
     </Stack>
   );
 };
