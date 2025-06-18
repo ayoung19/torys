@@ -2,7 +2,7 @@ import prisma from "@/db";
 import { computePayrollRecords } from "@/utils/payrollRecords";
 import { getActor } from "@/utils/prisma";
 import { AccountType, JobType } from "@prisma/client";
-import { format, parse } from "date-fns";
+import { addDays, format, parse, startOfWeek } from "date-fns";
 import ExcelJS from "exceljs";
 import { NextRequest, NextResponse } from "next/server";
 import { match } from "ts-pattern";
@@ -47,6 +47,7 @@ export async function GET(
     { header: "Temp Rate", key: "Temp Rate" },
     { header: "Reg Hours", key: "Reg Hours" },
     { header: "O/T Hours", key: "O/T Hours" },
+    { header: "Date", key: "Date" },
   ];
 
   employees
@@ -85,6 +86,10 @@ export async function GET(
                   .exhaustive() / 100,
               "Reg Hours": seconds / 3600,
               "O/T Hours": "",
+              Date: format(
+                addDays(startOfWeek(parse(timesheetId, "yyyy-MM-dd", new Date())), dayId),
+                "M/d/yyyy",
+              ),
             });
           });
 
@@ -110,6 +115,10 @@ export async function GET(
                   .exhaustive() / 100,
               "Reg Hours": "",
               "O/T Hours": seconds / 3600,
+              Date: format(
+                addDays(startOfWeek(parse(timesheetId, "yyyy-MM-dd", new Date())), dayId),
+                "M/d/yyyy",
+              ),
             });
           });
         });
