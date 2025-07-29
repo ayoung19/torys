@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 
 export default async function Page() {
   async function approveAction(
+    timesheetId: string,
     jobId: string,
     dayId: string,
     entryId: string,
@@ -24,7 +25,7 @@ export default async function Page() {
     await prisma.entry.update({
       where: {
         entryPrimaryKey: {
-          timesheetId: currentTimesheetId(),
+          timesheetId,
           jobId,
           dayId: parseInt(dayId),
           entryId,
@@ -39,7 +40,12 @@ export default async function Page() {
 
     return null;
   }
-  async function denyAction(jobId: string, dayId: string, entryId: string): Promise<ActionResult> {
+  async function denyAction(
+    timesheetId: string,
+    jobId: string,
+    dayId: string,
+    entryId: string,
+  ): Promise<ActionResult> {
     "use server";
 
     const actor = await getActorOrThrow();
@@ -51,7 +57,7 @@ export default async function Page() {
     await prisma.entry.delete({
       where: {
         entryPrimaryKey: {
-          timesheetId: currentTimesheetId(),
+          timesheetId,
           jobId,
           dayId: parseInt(dayId),
           entryId,

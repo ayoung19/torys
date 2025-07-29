@@ -32,8 +32,18 @@ interface Props {
     };
   }>[];
   accountIdToUsername: Record<string, string>;
-  approveAction: (jobId: string, dayId: string, entryId: string) => Promise<ActionResult>;
-  denyAction: (jobId: string, dayId: string, entryId: string) => Promise<ActionResult>;
+  approveAction: (
+    timesheetId: string,
+    jobId: string,
+    dayId: string,
+    entryId: string,
+  ) => Promise<ActionResult>;
+  denyAction: (
+    timesheetId: string,
+    jobId: string,
+    dayId: string,
+    entryId: string,
+  ) => Promise<ActionResult>;
 }
 
 export const DashboardPage = ({
@@ -107,6 +117,7 @@ export const DashboardPage = ({
                           onClick={async () =>
                             actionResult(
                               await approveAction(
+                                entry.timesheetId,
                                 entry.jobId,
                                 entry.dayId.toString(),
                                 entry.entryId,
@@ -121,7 +132,12 @@ export const DashboardPage = ({
                           colorScheme="red"
                           onClick={async () =>
                             actionResult(
-                              await denyAction(entry.jobId, entry.dayId.toString(), entry.entryId),
+                              await denyAction(
+                                entry.timesheetId,
+                                entry.jobId,
+                                entry.dayId.toString(),
+                                entry.entryId,
+                              ),
                             )
                           }
                         >
