@@ -68,7 +68,6 @@ export default async function Page() {
     [
       prisma.entry.findMany({
         where: {
-          timesheetId: currentTimesheetId(),
           isApproved: false,
         },
       }),
