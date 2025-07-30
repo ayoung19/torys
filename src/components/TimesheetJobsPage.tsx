@@ -35,7 +35,6 @@ export const TimesheetJobsPage = ({ timesheet, jobs }: Props) => {
       </Breadcrumb>
       {jobs
         .toSorted((a, b) => a.name.localeCompare(b.name))
-        .filter((job) => job.isActive)
         .map((job) => (
           <Card key={job.jobId}>
             <CardBody>
