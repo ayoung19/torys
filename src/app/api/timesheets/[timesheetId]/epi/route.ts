@@ -69,7 +69,7 @@ export async function GET(
               "Co Code": "1SI",
               "Batch ID": parseInt(format(parse(timesheetId, "yyyy-MM-dd", new Date()), "Mddyy")),
               "File #": parseInt(record.employee.displayId),
-              "Temp Cost Number": `${record.job.oldJobId.toString().padStart(6, "0")}-0${dayId}-RFR-${match(
+              "Temp Cost Number": `${record.job.newJobId.toString().padStart(6, "0")}-0${dayId}-RFR-${match(
                 record.job.jobType,
               )
                 .with(JobType.PRIVATE, () => "N")
@@ -102,7 +102,7 @@ export async function GET(
               "Co Code": "1SI",
               "Batch ID": parseInt(format(parse(timesheetId, "yyyy-MM-dd", new Date()), "Mddyy")),
               "File #": parseInt(record.employee.displayId),
-              "Temp Cost Number": `${record.job.oldJobId}-0${dayId}-RFR-${match(record.job.jobType)
+              "Temp Cost Number": `${record.job.newJobId}-0${dayId}-RFR-${match(record.job.jobType)
                 .with(JobType.PRIVATE, () => "N")
                 .with(JobType.STATE, JobType.FEDERAL, () => `Y-${record.employee.fringeCode}`)
                 .exhaustive()}`,

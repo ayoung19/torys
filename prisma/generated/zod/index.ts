@@ -92,6 +92,7 @@ export const JobScalarFieldEnumSchema = z.enum([
   "timesheetId",
   "jobId",
   "oldJobId",
+  "newJobId",
   "isActive",
   "name",
   "budgetOriginalCents",
@@ -220,6 +221,7 @@ export const JobSchema = z.object({
   timesheetId: z.string(),
   jobId: z.string(),
   oldJobId: z.number().int(),
+  newJobId: z.string(),
   isActive: z.boolean(),
   name: z.string(),
   budgetOriginalCents: z.number().int().nullable(),
@@ -453,6 +455,7 @@ export const JobSelectSchema: z.ZodType<Prisma.JobSelect> = z
     timesheetId: z.boolean().optional(),
     jobId: z.boolean().optional(),
     oldJobId: z.boolean().optional(),
+    newJobId: z.boolean().optional(),
     isActive: z.boolean().optional(),
     name: z.boolean().optional(),
     budgetOriginalCents: z.boolean().optional(),
@@ -969,6 +972,7 @@ export const JobWhereInputSchema: z.ZodType<Prisma.JobWhereInput> = z
     timesheetId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
     jobId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
     oldJobId: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+    newJobId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
     isActive: z.union([z.lazy(() => BoolFilterSchema), z.boolean()]).optional(),
     name: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
     budgetOriginalCents: z
@@ -1002,6 +1006,7 @@ export const JobOrderByWithRelationInputSchema: z.ZodType<Prisma.JobOrderByWithR
     timesheetId: z.lazy(() => SortOrderSchema).optional(),
     jobId: z.lazy(() => SortOrderSchema).optional(),
     oldJobId: z.lazy(() => SortOrderSchema).optional(),
+    newJobId: z.lazy(() => SortOrderSchema).optional(),
     isActive: z.lazy(() => SortOrderSchema).optional(),
     name: z.lazy(() => SortOrderSchema).optional(),
     budgetOriginalCents: z
@@ -1055,6 +1060,7 @@ export const JobWhereUniqueInputSchema: z.ZodType<Prisma.JobWhereUniqueInput> = 
         timesheetId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
         jobId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
         oldJobId: z.union([z.lazy(() => IntFilterSchema), z.number().int()]).optional(),
+        newJobId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
         isActive: z.union([z.lazy(() => BoolFilterSchema), z.boolean()]).optional(),
         name: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
         budgetOriginalCents: z
@@ -1093,6 +1099,7 @@ export const JobOrderByWithAggregationInputSchema: z.ZodType<Prisma.JobOrderByWi
       timesheetId: z.lazy(() => SortOrderSchema).optional(),
       jobId: z.lazy(() => SortOrderSchema).optional(),
       oldJobId: z.lazy(() => SortOrderSchema).optional(),
+      newJobId: z.lazy(() => SortOrderSchema).optional(),
       isActive: z.lazy(() => SortOrderSchema).optional(),
       name: z.lazy(() => SortOrderSchema).optional(),
       budgetOriginalCents: z
@@ -1138,6 +1145,7 @@ export const JobScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.JobScalar
       timesheetId: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
       jobId: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
       oldJobId: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+      newJobId: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
       isActive: z.union([z.lazy(() => BoolWithAggregatesFilterSchema), z.boolean()]).optional(),
       name: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
       budgetOriginalCents: z
@@ -1933,6 +1941,7 @@ export const JobCreateInputSchema: z.ZodType<Prisma.JobCreateInput> = z
   .object({
     jobId: z.string().optional(),
     oldJobId: z.number().int(),
+    newJobId: z.string(),
     isActive: z.boolean(),
     name: z.string(),
     budgetOriginalCents: z.number().int().optional().nullable(),
@@ -1950,6 +1959,7 @@ export const JobUncheckedCreateInputSchema: z.ZodType<Prisma.JobUncheckedCreateI
     timesheetId: z.string(),
     jobId: z.string().optional(),
     oldJobId: z.number().int(),
+    newJobId: z.string(),
     isActive: z.boolean(),
     name: z.string(),
     budgetOriginalCents: z.number().int().optional().nullable(),
@@ -1966,6 +1976,9 @@ export const JobUpdateInputSchema: z.ZodType<Prisma.JobUpdateInput> = z
     jobId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
     oldJobId: z
       .union([z.number().int(), z.lazy(() => IntFieldUpdateOperationsInputSchema)])
+      .optional(),
+    newJobId: z
+      .union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)])
       .optional(),
     isActive: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
     name: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
@@ -2005,6 +2018,9 @@ export const JobUncheckedUpdateInputSchema: z.ZodType<Prisma.JobUncheckedUpdateI
     oldJobId: z
       .union([z.number().int(), z.lazy(() => IntFieldUpdateOperationsInputSchema)])
       .optional(),
+    newJobId: z
+      .union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)])
+      .optional(),
     isActive: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
     name: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
     budgetOriginalCents: z
@@ -2038,6 +2054,7 @@ export const JobCreateManyInputSchema: z.ZodType<Prisma.JobCreateManyInput> = z
     timesheetId: z.string(),
     jobId: z.string().optional(),
     oldJobId: z.number().int(),
+    newJobId: z.string(),
     isActive: z.boolean(),
     name: z.string(),
     budgetOriginalCents: z.number().int().optional().nullable(),
@@ -2053,6 +2070,9 @@ export const JobUpdateManyMutationInputSchema: z.ZodType<Prisma.JobUpdateManyMut
     jobId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
     oldJobId: z
       .union([z.number().int(), z.lazy(() => IntFieldUpdateOperationsInputSchema)])
+      .optional(),
+    newJobId: z
+      .union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)])
       .optional(),
     isActive: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
     name: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
@@ -2089,6 +2109,9 @@ export const JobUncheckedUpdateManyInputSchema: z.ZodType<Prisma.JobUncheckedUpd
     jobId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
     oldJobId: z
       .union([z.number().int(), z.lazy(() => IntFieldUpdateOperationsInputSchema)])
+      .optional(),
+    newJobId: z
+      .union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)])
       .optional(),
     isActive: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
     name: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
@@ -2879,6 +2902,7 @@ export const JobCountOrderByAggregateInputSchema: z.ZodType<Prisma.JobCountOrder
       timesheetId: z.lazy(() => SortOrderSchema).optional(),
       jobId: z.lazy(() => SortOrderSchema).optional(),
       oldJobId: z.lazy(() => SortOrderSchema).optional(),
+      newJobId: z.lazy(() => SortOrderSchema).optional(),
       isActive: z.lazy(() => SortOrderSchema).optional(),
       name: z.lazy(() => SortOrderSchema).optional(),
       budgetOriginalCents: z.lazy(() => SortOrderSchema).optional(),
@@ -2904,6 +2928,7 @@ export const JobMaxOrderByAggregateInputSchema: z.ZodType<Prisma.JobMaxOrderByAg
     timesheetId: z.lazy(() => SortOrderSchema).optional(),
     jobId: z.lazy(() => SortOrderSchema).optional(),
     oldJobId: z.lazy(() => SortOrderSchema).optional(),
+    newJobId: z.lazy(() => SortOrderSchema).optional(),
     isActive: z.lazy(() => SortOrderSchema).optional(),
     name: z.lazy(() => SortOrderSchema).optional(),
     budgetOriginalCents: z.lazy(() => SortOrderSchema).optional(),
@@ -2919,6 +2944,7 @@ export const JobMinOrderByAggregateInputSchema: z.ZodType<Prisma.JobMinOrderByAg
     timesheetId: z.lazy(() => SortOrderSchema).optional(),
     jobId: z.lazy(() => SortOrderSchema).optional(),
     oldJobId: z.lazy(() => SortOrderSchema).optional(),
+    newJobId: z.lazy(() => SortOrderSchema).optional(),
     isActive: z.lazy(() => SortOrderSchema).optional(),
     name: z.lazy(() => SortOrderSchema).optional(),
     budgetOriginalCents: z.lazy(() => SortOrderSchema).optional(),
@@ -5666,6 +5692,7 @@ export const JobCreateWithoutTimesheetInputSchema: z.ZodType<Prisma.JobCreateWit
     .object({
       jobId: z.string().optional(),
       oldJobId: z.number().int(),
+      newJobId: z.string(),
       isActive: z.boolean(),
       name: z.string(),
       budgetOriginalCents: z.number().int().optional().nullable(),
@@ -5682,6 +5709,7 @@ export const JobUncheckedCreateWithoutTimesheetInputSchema: z.ZodType<Prisma.Job
     .object({
       jobId: z.string().optional(),
       oldJobId: z.number().int(),
+      newJobId: z.string(),
       isActive: z.boolean(),
       name: z.string(),
       budgetOriginalCents: z.number().int().optional().nullable(),
@@ -5843,6 +5871,7 @@ export const JobScalarWhereInputSchema: z.ZodType<Prisma.JobScalarWhereInput> = 
     timesheetId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
     jobId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
     oldJobId: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+    newJobId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
     isActive: z.union([z.lazy(() => BoolFilterSchema), z.boolean()]).optional(),
     name: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
     budgetOriginalCents: z
@@ -6221,6 +6250,7 @@ export const JobCreateWithoutDaysInputSchema: z.ZodType<Prisma.JobCreateWithoutD
   .object({
     jobId: z.string().optional(),
     oldJobId: z.number().int(),
+    newJobId: z.string(),
     isActive: z.boolean(),
     name: z.string(),
     budgetOriginalCents: z.number().int().optional().nullable(),
@@ -6238,6 +6268,7 @@ export const JobUncheckedCreateWithoutDaysInputSchema: z.ZodType<Prisma.JobUnche
       timesheetId: z.string(),
       jobId: z.string().optional(),
       oldJobId: z.number().int(),
+      newJobId: z.string(),
       isActive: z.boolean(),
       name: z.string(),
       budgetOriginalCents: z.number().int().optional().nullable(),
@@ -6370,6 +6401,9 @@ export const JobUpdateWithoutDaysInputSchema: z.ZodType<Prisma.JobUpdateWithoutD
     oldJobId: z
       .union([z.number().int(), z.lazy(() => IntFieldUpdateOperationsInputSchema)])
       .optional(),
+    newJobId: z
+      .union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)])
+      .optional(),
     isActive: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
     name: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
     budgetOriginalCents: z
@@ -6407,6 +6441,9 @@ export const JobUncheckedUpdateWithoutDaysInputSchema: z.ZodType<Prisma.JobUnche
       jobId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
       oldJobId: z
         .union([z.number().int(), z.lazy(() => IntFieldUpdateOperationsInputSchema)])
+        .optional(),
+      newJobId: z
+        .union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)])
         .optional(),
       isActive: z
         .union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)])
@@ -7014,6 +7051,7 @@ export const JobCreateManyTimesheetInputSchema: z.ZodType<Prisma.JobCreateManyTi
   .object({
     jobId: z.string().optional(),
     oldJobId: z.number().int(),
+    newJobId: z.string(),
     isActive: z.boolean(),
     name: z.string(),
     budgetOriginalCents: z.number().int().optional().nullable(),
@@ -7126,6 +7164,9 @@ export const JobUpdateWithoutTimesheetInputSchema: z.ZodType<Prisma.JobUpdateWit
       oldJobId: z
         .union([z.number().int(), z.lazy(() => IntFieldUpdateOperationsInputSchema)])
         .optional(),
+      newJobId: z
+        .union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)])
+        .optional(),
       isActive: z
         .union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)])
         .optional(),
@@ -7163,6 +7204,9 @@ export const JobUncheckedUpdateWithoutTimesheetInputSchema: z.ZodType<Prisma.Job
       oldJobId: z
         .union([z.number().int(), z.lazy(() => IntFieldUpdateOperationsInputSchema)])
         .optional(),
+      newJobId: z
+        .union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)])
+        .optional(),
       isActive: z
         .union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)])
         .optional(),
@@ -7199,6 +7243,9 @@ export const JobUncheckedUpdateManyWithoutTimesheetInputSchema: z.ZodType<Prisma
       jobId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
       oldJobId: z
         .union([z.number().int(), z.lazy(() => IntFieldUpdateOperationsInputSchema)])
+        .optional(),
+      newJobId: z
+        .union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)])
         .optional(),
       isActive: z
         .union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)])

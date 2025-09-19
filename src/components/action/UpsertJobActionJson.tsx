@@ -80,7 +80,12 @@ export const UpsertJobActionJson = ({ action, actionJson, findFirstAction }: Pro
         },
         {
           accessor: "oldJobId",
-          label: "ID",
+          label: "Old ID",
+          render: (value) => value,
+        },
+        {
+          accessor: "newJobId",
+          label: "New ID",
           render: (value) => value,
         },
         {

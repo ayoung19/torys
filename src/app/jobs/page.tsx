@@ -17,6 +17,7 @@ const jobSchema = z.object({
   originalLaborSeconds: z.coerce.number().int().nullable(),
   currentLaborSeconds: z.coerce.number().int().nullable(),
   jobType: z.enum([JobType.PRIVATE, JobType.STATE, JobType.FEDERAL]),
+  newJobId: z.string(),
 });
 
 export default async function Page() {

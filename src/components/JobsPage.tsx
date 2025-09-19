@@ -42,6 +42,7 @@ const formChildren = ({ Field, watch, setValue }: FormRenderContext<StringifyVal
         { label: "No", value: "false" },
       ]}
     />
+    <Field name="newJobId" label="ID" type="text" isRequired={true} rules={{ required: true }} />
     <Field name="name" label="Name" type="text" isRequired={true} rules={{ required: true }} />
     <FormLayout columns={2}>
       <Stack>
@@ -202,7 +203,7 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
           <Badge colorScheme="red">Inactive</Badge>
         ),
     }),
-    columnHelper.accessor("oldJobId", {
+    columnHelper.accessor("newJobId", {
       header: "ID",
     }),
     columnHelper.accessor("name", {
@@ -275,6 +276,7 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
                       ? "\n"
                       : secondsToHourString(props.row.original.currentLaborSeconds),
                   jobType: props.row.original.jobType.toString(),
+                  newJobId: props.row.original.newJobId,
                 },
                 onSubmit: formOnSubmit,
                 children: formChildren,
@@ -321,6 +323,7 @@ export const JobsPage = ({ jobs, upsertAction }: Props) => {
                   originalLaborSeconds: "\n",
                   currentLaborSeconds: "\n",
                   jobType: JobType.PRIVATE.toString(),
+                  newJobId: "",
                 },
                 onSubmit: formOnSubmit,
                 children: formChildren,
