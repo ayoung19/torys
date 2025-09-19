@@ -66,7 +66,7 @@ model Job {
   jobId       String    @default(uuid())
 
   oldJobId Int
-  newJobId String? @default("")
+  newJobId String
 
   days Day[]
 
