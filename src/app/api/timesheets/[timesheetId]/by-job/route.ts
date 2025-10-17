@@ -40,6 +40,38 @@ export async function GET(
 
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet();
+
+  // Add date header row
+  const weekStart = startOfWeek(parse(timesheetId, "yyyy-MM-dd", new Date()));
+  const dateRow = sheet.addRow([
+    "",
+    "",
+    "",
+    ...[0, 1, 2, 3, 4, 5, 6].map((dayId) => format(addDays(weekStart, dayId), "M/d/yyyy")),
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  dateRow.font = { bold: true };
+
+  // Add day-of-week header row
+  const dayHeaderRow = sheet.addRow([
+    "ID",
+    "Employee Name",
+    "Rate",
+    ...[0, 1, 2, 3, 4, 5, 6].map((dayId) => format(addDays(weekStart, dayId), "E")),
+    "Hours",
+    "Paid Out",
+    "Original Budget",
+    "Remaining Budget",
+    "Original Man Hours",
+    "Remaining Man Hours",
+  ]);
+  dayHeaderRow.font = { bold: true };
+
   sheet.columns = [
     {},
     { width: 32 },
@@ -59,6 +91,9 @@ export async function GET(
     { width: 16 },
   ];
 
+  // Freeze the top two rows (date + day headers)
+  sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 2 }];
+
   const seen = new Set<string>();
 
   employees
@@ -75,9 +110,15 @@ export async function GET(
         "",
         job.name,
         "",
-        ...[0, 1, 2, 3, 4, 5, 6].map((dayId) =>
-          format(addDays(startOfWeek(parse(timesheetId, "yyyy-MM-dd", new Date())), dayId), "M/d"),
-        ),
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
         "",
         "",
         "",
@@ -112,21 +153,6 @@ export async function GET(
           };
         }
       }
-
-      sheet.addRow([
-        "",
-        "",
-        "Rate",
-        ...[0, 1, 2, 3, 4, 5, 6].map((dayId) =>
-          format(addDays(startOfWeek(parse(timesheetId, "yyyy-MM-dd", new Date())), dayId), "E"),
-        ),
-        "Hours",
-        "Paid Out",
-        "Original Budget",
-        "Remaining Budget",
-        "Original Man Hours",
-        "Remaining Man Hours",
-      ]);
 
       let totalSeconds = 0;
       let totalCents = 0;

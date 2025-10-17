@@ -3,6 +3,7 @@ import { isStateOrFederal } from "@/utils/job";
 import { computePayrollRecords } from "@/utils/payrollRecords";
 import { getActor } from "@/utils/prisma";
 import { AccountType, JobType } from "@prisma/client";
+import { addDays, format, parse, startOfWeek } from "date-fns";
 import ExcelJS from "exceljs";
 import { NextRequest, NextResponse } from "next/server";
 import { match } from "ts-pattern";
@@ -39,6 +40,21 @@ export async function GET(
 
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet();
+
+  // Add date header row
+  const weekStart = startOfWeek(parse(timesheetId, "yyyy-MM-dd", new Date()));
+  const dateRow = sheet.addRow([
+    "",
+    "",
+    "",
+    "",
+    ...[0, 1, 2, 3, 4, 5, 6].map((dayId) => format(addDays(weekStart, dayId), "M/d/yyyy")),
+    "",
+    "",
+  ]);
+  dateRow.font = { bold: true };
+
+  // Add column headers
   sheet.columns = [
     { header: "Job", key: "Job", width: 32 },
     { header: "ID", key: "ID" },
@@ -54,6 +70,9 @@ export async function GET(
     { header: "Hours", key: "Hours" },
     { header: "Paid Out", key: "Paid Out" },
   ];
+
+  // Freeze the top two rows (date + column headers)
+  sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 2 }];
 
   employees
     .toSorted((a, b) => a.name.localeCompare(b.name))
