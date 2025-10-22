@@ -72,7 +72,7 @@ export async function GET(
   ];
 
   // Freeze the top two rows (date + column headers)
-  sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 2 }];
+  sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 1 }];
 
   employees
     .toSorted((a, b) => a.name.localeCompare(b.name))
