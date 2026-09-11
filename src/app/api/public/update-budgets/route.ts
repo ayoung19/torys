@@ -1,9 +1,5 @@
 import prisma from "@/db";
-import {
-  computePayrollRecords,
-  recordToOvertimeTotal,
-  recordToRegularTotal,
-} from "@/utils/payrollRecords";
+import { timesheetLaborByJob } from "@/utils/payrollRecords";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -36,10 +32,8 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  const records = computePayrollRecords(employees);
-
   await Promise.all(
-    Array.from(new Set(records.map((record) => record.job.jobId))).map((jobId) =>
+    Array.from(timesheetLaborByJob(employees)).map(([jobId, labor]) =>
       (async () => {
         const previousJob = await prisma.job.findUniqueOrThrow({
           where: {
@@ -49,21 +43,6 @@ export async function POST(req: NextRequest) {
             },
           },
         });
-
-        const { totalSeconds, totalCents } = records
-          .filter((record) => record.job.jobId === jobId)
-          .reduce(
-            (acc, curr) => {
-              const regularTotal = recordToRegularTotal(curr);
-              const overtimeTotal = recordToOvertimeTotal(curr);
-
-              return {
-                totalSeconds: acc.totalSeconds + regularTotal.seconds + overtimeTotal.seconds,
-                totalCents: acc.totalCents + regularTotal.cents + overtimeTotal.cents,
-              };
-            },
-            { totalSeconds: 0, totalCents: 0 },
-          );
 
         await prisma.job.update({
           where: {
@@ -76,11 +55,11 @@ export async function POST(req: NextRequest) {
             budgetCurrentCents:
               previousJob.budgetCurrentCents === null
                 ? undefined
-                : previousJob.budgetCurrentCents - totalCents,
+                : previousJob.budgetCurrentCents - labor.cents,
             currentLaborSeconds:
               previousJob.currentLaborSeconds === null
                 ? undefined
-                : previousJob.currentLaborSeconds - totalSeconds,
+                : previousJob.currentLaborSeconds - labor.seconds,
           },
         });
       })(),

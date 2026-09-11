@@ -1,5 +1,6 @@
 import { Employee, Job, JobType, Prisma } from "@prisma/client";
 import { match } from "ts-pattern";
+import type { WeeklyLabor } from "./budgets";
 import { isWeekend } from "./day";
 import { isPrivateOrFederal, isStateOrFederal } from "./job";
 
@@ -146,4 +147,37 @@ export const computePayrollRecords = (
   });
 
   return out;
+};
+
+// Approved regular + overtime labor totals per job for a single timesheet,
+// aggregated exactly as the payroll export computes them.
+export const timesheetLaborByJob = (
+  employees: Prisma.EmployeeGetPayload<{
+    include: {
+      entries: {
+        include: {
+          day: {
+            include: {
+              job: true;
+            };
+          };
+        };
+      };
+    };
+  }>[],
+): Map<string, WeeklyLabor> => {
+  const byJob = new Map<string, WeeklyLabor>();
+
+  for (const record of computePayrollRecords(employees)) {
+    const regular = recordToRegularTotal(record);
+    const overtime = recordToOvertimeTotal(record);
+    const prev = byJob.get(record.job.jobId) ?? { cents: 0, seconds: 0 };
+
+    byJob.set(record.job.jobId, {
+      cents: prev.cents + regular.cents + overtime.cents,
+      seconds: prev.seconds + regular.seconds + overtime.seconds,
+    });
+  }
+
+  return byJob;
 };
