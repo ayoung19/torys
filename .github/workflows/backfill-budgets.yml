@@ -1,0 +1,33 @@
+name: Backfill Budgets
+
+# One-off recovery for weeks the "Update Budgets" cron missed while scheduled
+# workflows were disabled. Run with dryRun=true first, inspect the printed
+# diff, then re-run with dryRun=false to apply.
+on:
+  workflow_dispatch:
+    inputs:
+      fromTimesheetId:
+        description: "Anchor week ending (last correctly-settled week, YYYY-MM-DD). Not modified."
+        required: true
+        default: "2026-08-01"
+      toTimesheetId:
+        description: "Latest week ending to settle through (YYYY-MM-DD)."
+        required: true
+        default: "2026-09-12"
+      dryRun:
+        description: "Preview only — no writes."
+        type: boolean
+        default: true
+
+jobs:
+  backfill_budgets:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          response=$(curl --fail-with-body -sS \
+            -d "apiKey=${{ vars.API_KEY }}" \
+            -d "fromTimesheetId=${{ inputs.fromTimesheetId }}" \
+            -d "toTimesheetId=${{ inputs.toTimesheetId }}" \
+            -d "dryRun=${{ inputs.dryRun }}" \
+            https://torys.onrender.com/api/public/backfill-budgets) || { echo "$response"; exit 1; }
+          echo "$response" | jq .
