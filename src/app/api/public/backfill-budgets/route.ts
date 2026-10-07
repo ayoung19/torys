@@ -89,9 +89,17 @@ export async function POST(req: NextRequest) {
 
   const updates = computeBackfill(weeks, jobsByWeek, laborByWeek);
 
+  // The vast majority of settlements are no-ops (unchanged value copied forward);
+  // only write — and only report — the rows that actually move the ledger.
+  const changed = updates.filter(
+    (update) =>
+      update.budgetCurrentCents.from !== update.budgetCurrentCents.to ||
+      update.currentLaborSeconds.from !== update.currentLaborSeconds.to,
+  );
+
   if (!dryRun) {
     await prisma.$transaction(
-      updates.map((update) =>
+      changed.map((update) =>
         prisma.job.update({
           where: {
             jobPrimaryKey: {
@@ -111,7 +119,9 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     dryRun,
     settledPairs: weeks.slice(0, -1).map((week, i) => `${week} → ${weeks[i + 1]}`),
-    jobsAffected: new Set(updates.map((update) => update.jobId)).size,
-    updates,
+    jobsConsidered: new Set(updates.map((update) => update.jobId)).size,
+    jobsChanged: new Set(changed.map((update) => update.jobId)).size,
+    changedRows: changed.length,
+    changed,
   });
 }
